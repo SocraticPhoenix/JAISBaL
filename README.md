@@ -211,7 +211,7 @@ Auxiliary Instructions, 0 defined
 |  ID  |  Main Alias  |  All Aliases  |  Explanation  |  Specification  |
 | ---- | ------------ | ------------- | ------------- | --------------- |
 
-Auxiliary Constants, 0 available
+Auxiliary Constants, 0 defined
 
 |  ID  |  Value  |
 | ---- | ------- |
