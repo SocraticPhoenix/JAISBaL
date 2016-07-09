@@ -1,0 +1,130 @@
+//Plugins
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "net.sf.gapt:apt:1"
+    }
+}
+
+
+plugins {
+    id 'com.jfrog.bintray' version '1.3.1'
+}
+
+apply plugin : 'java'
+apply plugin : 'maven'
+apply plugin : 'maven-publish'
+apply plugin : 'idea'
+apply plugin : 'net.sf.gapt'
+//End Plugins
+
+//Program Specific Variables (Fill these in)
+def programVersion = "0.0.0"
+def programGroup = "com.socraticphoenix.gmail"
+def programName = "JAISBaL"
+def repoName = ""
+def repoPackageName = ""
+def programLicense = ""
+def versionControlURL = ""
+//End Variables
+
+//Gradle Variables
+group = "$programGroup"
+version = "$programVersion"
+sourceCompatibility = 1.8
+//End Gradle Variables
+
+//Shadow Configuration
+configurations {
+    shadow
+    compile.extendsFrom shadow
+}
+//End Shadow Configuration
+
+//Repositories and Dependencies (Fill these in)
+repositories {
+    mavenCentral()
+    maven {
+        name 'My Repo'
+        url 'https://dl.bintray.com/meguy26/Main'
+    }
+}
+
+dependencies {
+    shadow fileTree(dir: "lib", include: "*.jar")
+}
+//End Repositories and Dependencies
+
+//Tasks
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc){
+    classifier = "javadoc"
+    from javadoc.destinationDir
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.2'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+//End Tasks
+
+//Jar Configuration
+jar {
+    configurations.shadow.each { slice ->
+        from(project.zipTree(slice)) {
+        }
+    }
+    manifest {
+        attributes("Main-Class":"com.gmail.socraticphoenix.jaisbal.JAISBaL")
+    }
+}
+//End Jar Configuration
+
+//BinTray Publishing
+publishing {
+    publications {
+        maven (MavenPublication) {
+            artifact jar {
+                classifier ""
+            }
+
+            artifact sourceJar {
+                classifier "sources"
+            }
+
+            artifact javadocJar {
+                classifier "javadoc"
+            }
+
+            groupId "$programGroup"
+            artifactId "$programName"
+            version "$programVersion"
+        }
+    }
+
+}
+
+bintray {
+    user = ""
+    key = ""
+    publications = ["maven"]
+    publish = true
+    pkg {
+        repo = "$repoName"
+        name = "$repoPackageName"
+        licenses = ["$programLicense"]
+        vcsUrl = "$versionControlURL"
+
+        version {
+            name = "$programVersion"
+        }
+    }
+}
+//End Bintray Publishing

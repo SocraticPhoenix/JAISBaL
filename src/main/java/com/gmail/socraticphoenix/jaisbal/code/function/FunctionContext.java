@@ -1,0 +1,456 @@
+/*
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2015 socraticphoenix@gmail.com
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * @author Socratic_Phoenix (socraticphoenix@gmail.com)
+ */
+package com.gmail.socraticphoenix.jaisbal.code.function;
+
+import com.gmail.socraticphoenix.jaisbal.JAISBaL;
+import com.gmail.socraticphoenix.jaisbal.code.Program;
+import com.gmail.socraticphoenix.jaisbal.code.Type;
+import com.gmail.socraticphoenix.jaisbal.code.instructions.Instruction;
+import com.gmail.socraticphoenix.jaisbal.code.instructions.InstructionRegistry;
+import com.gmail.socraticphoenix.jaisbal.code.instructions.Instructions;
+import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
+import com.gmail.socraticphoenix.plasma.base.Triple;
+import com.gmail.socraticphoenix.plasma.collection.PlasmaListUtil;
+import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
+import com.gmail.socraticphoenix.plasma.string.CharacterStream;
+import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
+import com.gmail.socraticphoenix.plasma.string.StringFormat;
+import com.gmail.socraticphoenix.plasma.string.StringParseException;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class FunctionContext extends PlasmaObject {
+    private CastableValue[] currentArg;
+    private Function function;
+    private List<String> instructions;
+    private Stack<CastableValue> stack;
+    private Stack<CastableValue> parent;
+    private Map<Long, CastableValue> locals;
+    private Program program;
+    private int current;
+    private List<Type> parameters;
+    private AtomicBoolean running;
+
+    public FunctionContext(Function function, List<Type> parameters, List<String> instructions, Stack<CastableValue> stack, Stack<CastableValue> parent, Map<Long, CastableValue> locals, Program program) {
+        this.function = function;
+        this.instructions = instructions;
+        this.stack = stack;
+        this.parent = parent;
+        this.locals = locals;
+        this.program = program;
+        this.current = 0;
+        this.parameters = parameters;
+        this.running = new AtomicBoolean(true);
+    }
+
+    public FunctionContext(Function function, Program program) {
+        this(function, PlasmaListUtil.looseClone(function.getParameters()), PlasmaListUtil.looseClone(function.getInstructions()), new Stack<>(), new Stack<>(), new LinkedHashMap<>(), program);
+    }
+
+    public static String valueToString(CastableValue value) {
+        if (value.getValueAs(CastableValue.class).isPresent()) {
+            return valueToString(value.getValueAs(CastableValue.class).get());
+        }
+
+        StringBuilder builder = new StringBuilder();
+        if (value.getValueAs(Map.class).isPresent()) {
+            builder.append("{");
+            Map map = value.getValueAs(Map.class).get();
+            int i = 0;
+            Collection<Map.Entry> entries = map.entrySet();
+            for (Map.Entry entry : entries) {
+                builder.append(String.valueOf(entry.getKey())).append(":").append(FunctionContext.valueToString(CastableValue.of(entry.getValue())));
+                if (i < entries.size() - 1) {
+                    builder.append(", ");
+                }
+                i++;
+            }
+            builder.append("}");
+        } else if (value.getValueAs(CastableValue[].class).isPresent()) {
+            builder.append("[");
+            CastableValue[] array = value.getValueAs(CastableValue[].class).get();
+            for (int i = 0; i < array.length; i++) {
+                CastableValue val = array[i];
+                if (val != null && val.getValue().isPresent()) {
+                    builder.append(FunctionContext.valueToString(array[i]));
+                    if (i < array.length - 1 && array[i + 1] != null && array[i + 1].getValue().isPresent()) {
+                        builder.append(", ");
+                    }
+                }
+            }
+            builder.append("]");
+        } else {
+            boolean str = !value.getValueAs(BigDecimal.class).isPresent();
+            builder.append(str ? String.valueOf(value.getValue().orElse(null)) : value.getValueAs(BigDecimal.class).get().toPlainString());
+        }
+        return builder.toString();
+    }
+
+    public static void run(FunctionContext context) throws JAISBaLExecutionException {
+        while (context.currentExists() && context.running.get()) {
+            String instruction = context.getCurrentAndStep();
+            try {
+                if (!instruction.equals("")) {
+                    String name;
+                    String arg;
+                    String[] pieces = instruction.split(" ", 2);
+                    if (pieces.length == 1) {
+                        name = pieces[0];
+                        arg = "";
+                    } else {
+                        name = pieces[0];
+                        arg = pieces[1];
+                    }
+                    if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().isPresent()) {
+                        Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().get();
+                        if (entry.isName("break")) {
+                            break;
+                        }
+                        context.currentArg = Type.readValues(new CharacterStream(arg), context.getProgram());
+                        entry.getAction().accept(context);
+                    } else {
+                        throw new JAISBaLExecutionException("No applicable instruction or function found");
+                    }
+                }
+            } catch (JAISBaLExecutionException | StringParseException | IOException e) {
+                throw new JAISBaLExecutionException("Error while executing instruction: " + instruction, e);
+            }
+        }
+    }
+
+    public static String explain(FunctionContext context, int indent) throws JAISBaLExecutionException {
+        List<Triple<Instruction, String, String>> preProcessed = new ArrayList<>();
+        while (context.currentExists()) {
+            String instruction = context.getCurrentAndStep();
+            if (!instruction.equals("")) {
+                String name;
+                String arg;
+                String[] pieces = instruction.split(" ", 2);
+                if (pieces.length == 1) {
+                    name = pieces[0];
+                    arg = "";
+                } else {
+                    name = pieces[0];
+                    arg = pieces[1];
+                }
+
+                if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().isPresent()) {
+                    Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().get();
+                    if(entry.getAliases().stream().filter(InstructionRegistry.getBlockStarts()::contains).findFirst().isPresent()) {
+                        preProcessed.add(Triple.of(entry, arg, PlasmaStringUtil.indent(indent) + entry.getAliases().stream().sorted((a, b) -> Integer.compare(b.length(), a.length())).findFirst().get() + (arg.equals("") ? "" : " ") + arg));
+                        indent++;
+                    } else if (entry.getAliases().stream().filter(InstructionRegistry.getBlockEnds()::contains).findFirst().isPresent()) {
+                        indent--;
+                        preProcessed.add(Triple.of(entry, arg, PlasmaStringUtil.indent(indent) + entry.getAliases().stream().sorted((a, b) -> Integer.compare(b.length(), a.length())).findFirst().get() + (arg.equals("") ? "" : " ") + arg));
+                    } else {
+                        preProcessed.add(Triple.of(entry, arg, PlasmaStringUtil.indent(indent) + entry.getAliases().stream().sorted((a, b) -> Integer.compare(b.length(), a.length())).findFirst().get() + (arg.equals("") ? "" : " ") + arg));
+                    }
+                } else {
+                    throw new JAISBaLExecutionException("No applicable instruction or function found " + name);
+                }
+
+            }
+        }
+        StringBuilder builder = new StringBuilder();
+        int length = preProcessed.stream().sorted((a, b) -> Integer.compare(b.getC().length(), a.getC().length())).findFirst().get().getC().length() + 4;
+        StringBuilder params = new StringBuilder();
+        if (!context.isImplicitInput()) {
+            context.getParameters().forEach(params::append);
+        }
+        params.append("}");
+        if (!context.isImplicitInput() && !context.getParameters().isEmpty()) {
+            String p = params.toString();
+            builder.append(p).append(PlasmaStringUtil.indent(length - p.length(), " ")).append(Program.COMMENT_START).append(" request input ").append(Program.COMMENT_END);
+        }
+        builder.append(System.lineSeparator());
+        if (!preProcessed.isEmpty()) {
+            for (Triple<Instruction, String, String> piece : preProcessed) {
+                builder.append(piece.getC()).append(PlasmaStringUtil.indent(length - piece.getC().length(), " ")).append(Program.COMMENT_START).append(" ").append(StringFormat.fromString(piece.getA().getDescription()).filler().var("arg", piece.getB()).fill()).append(" ").append(Program.COMMENT_END).append(System.lineSeparator());
+            }
+        }
+        return builder.toString();
+    }
+
+    public static String minify(FunctionContext context, boolean main) throws JAISBaLExecutionException {
+        StringBuilder builder = new StringBuilder();
+        boolean first = true;
+        while (context.currentExists()) {
+            String instruction = context.getCurrentAndStep();
+            if(first) {
+                StringBuilder params = new StringBuilder();
+                if (!context.isImplicitInput()) {
+                    context.getParameters().forEach(params::append);
+                } else if (!main){
+                    params.append("i");
+                }
+                if(Type.hasTypeNext(instruction)) {
+                    params.append("}");
+                }
+                builder.append(params);
+                first = false;
+            }
+            if (!instruction.equals("")) {
+                String name;
+                String arg;
+                String[] pieces = instruction.split(" ", 2);
+                if (pieces.length == 1) {
+                    name = pieces[0];
+                    arg = "";
+                } else {
+                    name = pieces[0];
+                    arg = pieces[1];
+                }
+                if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().isPresent()) {
+                    Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().get();
+                    builder.append(entry.getId()).append(arg);
+                } else {
+                    throw new JAISBaLExecutionException("No applicable instruction or function found " + name);
+                }
+            }
+        }
+        return builder.toString();
+    }
+
+    public boolean isImplicitInput() {
+        return this.function.isImplicitInput();
+    }
+
+
+    public String minify(boolean main) throws JAISBaLExecutionException {
+        return FunctionContext.minify(this, main);
+    }
+
+    public String explain(int indent) throws JAISBaLExecutionException {
+        return FunctionContext.explain(this, indent);
+    }
+
+    public FunctionContext clone() {
+        FunctionContext context = new FunctionContext(this.function, this.parameters, this.instructions, this.stack, this.parent, this.locals, this.program);
+        context.current = this.current;
+        context.currentArg = this.currentArg;
+        context.running = this.running;
+        return context;
+    }
+
+    public int indexOf(char instruction) {
+        for (int i = this.current; i < this.instructions.size(); i++) {
+            if (this.instructions.get(i).equals(String.valueOf(instruction))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public FunctionContext subset(String begin, String end) throws JAISBaLExecutionException {
+        int z = 1;
+        List<String> instructions = new ArrayList<>();
+        for (int i = this.current; i < this.instructions.size(); i++) {
+            String instruction = this.instruction(i);
+            instructions.add(instruction);
+            if (Function.exists(instruction)) {
+                if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(instruction)).findFirst().isPresent()) {
+                    Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(instruction)).findFirst().get();
+
+                    if (entry.isName(begin)) {
+                        z++;
+                    } else if (entry.isName(end)) {
+                        z--;
+                        if (z == 0 && instructions.size() > 0) {
+                            instructions.remove(instructions.size() - 1);
+                            break;
+                        }
+                    }
+
+                    if (z == 0) {
+                        break;
+                    }
+                }
+            }
+        }
+        FunctionContext context = new FunctionContext(this.function, new ArrayList<>(), instructions, this.getStack(), this.getParentStack(), this.getLocals(), this.getProgram());
+        context.running = this.running;
+        return context;
+    }
+
+    public void terminate() {
+        this.running.set(false);
+    }
+
+    public String instruction(int index) {
+        return this.instructions.get(index);
+    }
+
+    public int getCurrent() {
+        return this.current;
+    }
+
+    public void setCurrent(int current) {
+        this.current = current;
+    }
+
+    public void runAsMain() throws JAISBaLExecutionException, StringParseException, IOException {
+        try {
+            Stack<CastableValue> stack = new Stack<>();
+            List<Type> params = PlasmaListUtil.looseClone(this.function.getParameters());
+            if (params.size() != 1 || !params.get(0).isImplicit()) {
+                while (params.size() > 0) {
+                    Type type = params.get(0);
+                    if(Program.displayPrompts) {
+                        System.out.print("Enter a " + type.getName() + " > ");
+                    }
+                    String entered = JAISBaL.getInScanner().nextLine().trim();
+                    try {
+                        CastableValue value = Type.easyReadValues(new CharacterStream(entered), this.getProgram());
+                        if (type.matches(value)) {
+                            params.remove(0);
+                            stack.push(value);
+                        } else {
+                            System.out.println("Invalid value: " + Program.valueToString(value) + " cannot be converted to " + type.getName());
+                        }
+                    } catch (StringParseException e) {
+                        System.out.println("Invalid value:");
+                        e.printStackTrace(System.out);
+                    }
+                }
+
+                this.accept(stack);
+            }
+            Instructions.LOAD_ALL.getAction().accept(this);
+            FunctionContext.run(this);
+        } catch (JAISBaLExecutionException | StringParseException e) {
+            e.printStackTrace(System.out);
+        }
+        System.out.println(System.lineSeparator() + System.lineSeparator() + PlasmaStringUtil.indent(20, "-"));
+        System.out.println("Stack: " + FunctionContext.valueToString(new CastableValue(this.getStack().toArray(new CastableValue[0]))));
+        System.out.println("Locals: " + FunctionContext.valueToString(new CastableValue(this.getLocals())));
+    }
+
+    public void runAsSurrogate(FunctionContext context) throws JAISBaLExecutionException {
+        this.stack = context.getStack();
+        this.parent = context.getParentStack();
+        FunctionContext.run(this);
+    }
+
+    public void run(Stack<CastableValue> parent) throws JAISBaLExecutionException {
+        this.accept(parent);
+        FunctionContext.run(this);
+    }
+
+    public String getCurrentInstruction() {
+        this.validateCurrent();
+        return this.instructions.get(this.current);
+    }
+
+    public String getCurrentAndStep() {
+        String s = this.getCurrentInstruction();
+        this.setCurrent(this.getCurrent() + 1);
+        return s;
+    }
+
+    public boolean currentExists() {
+        return this.getCurrent() < this.instructions.size();
+    }
+
+    public void validateCurrent() {
+        this.setCurrent(this.getCurrent() < 0 ? 0 : this.getCurrent());
+    }
+
+    public CastableValue getCurrentArgEasy() {
+        CastableValue[] values = this.getCurrentArg();
+        if (values.length == 1) {
+            return values[0];
+        } else {
+            return new CastableValue(values);
+        }
+    }
+
+    public CastableValue[] getCurrentArg() {
+        return this.currentArg;
+    }
+
+    public void accept(Stack<CastableValue> parent) throws JAISBaLExecutionException {
+        if (this.getParameters().size() == 0) {
+            return;
+        }
+
+        if (parent.size() < this.getParameters().size()) {
+            throw new JAISBaLExecutionException("Stack underflow: required at least " + this.getParameters().size() + " parameter(s), but only " + parent.size() + " were/was available on the stack");
+        } else {
+            long ind = 0;
+            for (int i = this.getParameters().size() - 1; i >= 0; i--) {
+                Type param = this.getParameters().get(i);
+                CastableValue value = parent.pop();
+                if (param.matches(value)) {
+                    this.getLocals().put(ind, value);
+                    ind++;
+                } else {
+                    throw new JAISBaLExecutionException("Invalid parameter: " + value.getValue().orElse(null) + " cannot be converted to " + param.getName());
+                }
+            }
+        }
+
+        this.parent = parent;
+    }
+
+    public Stack<CastableValue> getParentStack() {
+        return this.parent;
+    }
+
+    public Program getProgram() {
+        return this.program;
+    }
+
+    public FunctionContext setProgram(Program program) {
+        this.program = program;
+        return this;
+    }
+
+    public Function getFunction() {
+        return this.function;
+    }
+
+    public Stack<CastableValue> getStack() {
+        return this.stack;
+    }
+
+    public Map<Long, CastableValue> getLocals() {
+        return this.locals;
+    }
+
+    public List<String> getInstructions() {
+        return this.instructions;
+    }
+
+    public List<Type> getParameters() {
+        return this.parameters;
+    }
+}
