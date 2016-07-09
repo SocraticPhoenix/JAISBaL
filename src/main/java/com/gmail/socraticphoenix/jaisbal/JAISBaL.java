@@ -89,6 +89,7 @@ public class JAISBaL {
                 String action = args.get("dev");
                 switch (action) {
                     case "spec": {
+                        JAISBaL.charsetInit();
                         JAISBaL.generateSpecFile();
                         break;
                     }
@@ -100,6 +101,7 @@ public class JAISBaL {
                         System.out.println("Unknown dev action \"" + action + "\"");
                 }
             } else {
+                JAISBaL.charsetInit();
                 Map<String, String> defaults = JAISBaL.getDefaultArgs();
                 defaults.entrySet().stream().filter(e -> !args.containsKey(e.getKey())).forEach(e -> args.put(e.getKey(), e.getValue()));
                 Map<String, DangerousConsumer<Map<String, String>>> modes = JAISBaL.modes();
@@ -152,6 +154,8 @@ public class JAISBaL {
 
     public static void generateSpecFile() throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter("generated-spec.txt"));
+        writer.write("For the sake of convenience, a is used to refer to the top value of the stack, b is used to refer to the second value on the stack, c is used to refer to the third value on the stack, and so on.");
+        writer.newLine();
         writer.write("Standard Instructions, ");
         writer.write(InstructionRegistry.getStandardInstructions().size() + " defined");
         writer.newLine();
@@ -177,7 +181,7 @@ public class JAISBaL {
         writer.write(InstructionRegistry.getAuxiliaryInstructionsDocumentation().githubFormat());
         writer.newLine();
         writer.write("Auxiliary Constants, ");
-        writer.write(InstructionRegistry.getAuxiliaryConstants().size() + " available");
+        writer.write(InstructionRegistry.getAuxiliaryConstants().size() + " defined");
         writer.newLine();
         writer.newLine();
         writer.write(InstructionRegistry.getAuxiliaryConstantsDocumentation().githubFormat());
@@ -190,6 +194,24 @@ public class JAISBaL {
             put("file", new FileMode());
             put("gui", new GuiMode());
         }};
+    }
+
+    public static void collectAndPrintInfo(Program program) throws JAISBaLExecutionException {
+        String source = program.getContent();
+        if (JAISBaLCharset.getCharset().newEncoder().canEncode(source)) {
+            System.out.println("JAISBaL bytes: " + source.getBytes(JAISBaLCharset.getCharset()).length);
+            System.out.println("UTF-8 bytes: " + source.getBytes(StandardCharsets.UTF_8).length);
+        } else {
+            char bad = '\0';
+            for(char c : source.toCharArray()) {
+                if(!JAISBaLCharset.getCharset().newEncoder().canEncode(c)) {
+                    bad = c;
+                    break;
+                }
+            }
+            System.out.println("JAISBaL bytes: error: unsupported character '" + PlasmaStringUtil.escape(String.valueOf(bad)) + "'");
+            System.out.println("UTF-8 bytes: " + source.getBytes(StandardCharsets.UTF_8).length);
+        }
     }
 
     public static Map<String, String> getDefaultArgs() {
@@ -226,6 +248,9 @@ public class JAISBaL {
     private static void generalInit() throws IOException {
         PlasmaReflectionUtil.registerCaster(new StringNumberCaster());
         InstructionRegistry.registerDefaults();
+    }
+
+    private static void charsetInit() throws IOException {
         JAISBaL.rootPage = JAISBaLCharPage.of("S", 250);
         JAISBaL.supplementaryPages = new ArrayList<>();
         JAISBaL.constantPages = new ArrayList<>();
@@ -321,7 +346,7 @@ public class JAISBaL {
         if (size > 40) {
             throw new IllegalStateException("Greater than 20 language characters are defined");
         }
-        for (int i = 0; i < 4 - -size; i++) {
+        for (int i = 0; i < 40 - size; i++) {
             builder.append("?");
         }
 

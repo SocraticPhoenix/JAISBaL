@@ -28,6 +28,7 @@ import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
 import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
 import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.util.NumberNames;
 import com.gmail.socraticphoenix.plasma.collection.PlasmaListUtil;
 import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
@@ -40,6 +41,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -227,6 +229,16 @@ public interface Instructions {
         Program.checkUnderflow(2, f);
         f.getStack().push(Instructions.sub(f.getStack().pop(), f.getStack().pop()));
     }, "subtract the second value on the stack from the top value on the stack", "Subtracts b from a. If a and b are both numbers, normal subtraction will occur. If either a or b is an array, and the other is a non-array, the other value will be subtracted from every value in the array. If a or b is a string, and the other is a number, a and b will both be converted to strings and subtracted. If a and b are strings, the number of times b occurs in a will be pushed. Finally, if both values are arrays, a new array will be created with a length of the smaller array, and ever value in the new array will be the result of subtraction of same-indexed values in a and b", "-", "sub");
+    Instruction REVERSE = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        CastableValue value = f.getStack().pop();
+        if(value.getAsString().isPresent()) {
+            f.getStack().push(CastableValue.of(PlasmaStringUtil.reverseString(value.getAsString().get())));
+        } else {
+            f.getStack().push(CastableValue.of(PlasmaListUtil.reverseList(PlasmaListUtil.buildList(value.getValueAs(CastableValue[].class).get())).toArray(new CastableValue[0])));
+        }
+    }, "reverse the top value of the stack", "Pops the top value off the stack and reverses it. If the a is a number or string, it will be converted to a string and the order of characters will be reversed. If a is an array, the order of elements will be reversed", "reverse");
+
     Instruction CONCAT = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(Instructions.concat(f.getStack().pop(), f.getStack().pop()));
@@ -387,10 +399,19 @@ public interface Instructions {
     }, Instructions.number(), "store the top of the stack at index ${arg} in an array", "Stores value a in array b, at the specified index. This instruction does not pop of the array. This instruction takes on argument, a number (see pushnum). This instruction is only succesful if b is an array, and the argument given is a 32-bit integer that is an index of b", "arraystore", "astore");
     Instruction ARRAY_LENGTH = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
         CastableValue value = f.getStack().pop();
-        Type.GENERAL_ARRAY.checkMatches(value);
         f.getStack().push(value);
         f.getStack().push(CastableValue.of(new BigDecimal(value.getValueAs(CastableValue[].class).get().length)));
     }), "push the length of the array onto the stack", "Pushes the length of array a onto the stack. This instruction does not pop of the array. This instruction fails if a is not an array", "arraylength", "alength");
+    Instruction ARRAY_SORT = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+        CastableValue[] array = f.getStack().pop().getValueAs(CastableValue[].class).get();
+        Arrays.sort(array, Instructions::compare);
+        f.getStack().push(CastableValue.of(array));
+    }), "pop the top value of the stack, sort it, and push it", "Pops the top value off the stack and sorts it from smallest to largest (see compare). This instruction fails if a is not an array", "sort");
+    Instruction ARRAY_SORT_REVERSE = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+        CastableValue[] array = f.getStack().pop().getValueAs(CastableValue[].class).get();
+        Arrays.sort(array, (a, b) -> Instructions.compare(b, a));
+        f.getStack().push(CastableValue.of(array));
+    }), "pop the top value of the stack, sort it, reverse it, and push it", "Pops the top value off the stack and sorts it from largest to smallest (see compare). This instruction fails if a is not an array", "rsort");
     Instruction PUSH_TRUTHY = new Instruction(f -> f.getStack().push(new CastableValue(new BigDecimal(1))), "push a truthy value onto the stack", "Pushes 1, a truthy value, onto the stack", "true");
     Instruction PUSH_FALSY = new Instruction(f -> f.getStack().push(new CastableValue(new BigDecimal(0))), "push a falsy value onto the stack", "Pushes 0, a falsy value, onto the stack", "false");
     Instruction COMPARE = new Instruction(f -> {
@@ -624,7 +645,7 @@ public interface Instructions {
                 f.getStack().push(pieces[i]);
             }
         }
-    }, "take the top value of the stack, split it up, and push each piece", "Pops the top value off the stack, splits it, and pushes each piece onto the stack. If the top value is a string or number, it will be converted to a string, and each character of the string will be pushed. If the top value is an array, the values in the array will be pushed in reverse order", "popsplitpush");
+    }, "take the top value off the stack, split it up, and push each piece", "Pops the top value off the stack, splits it, and pushes each piece onto the stack. If the top value is a string or number, it will be converted to a string, and each character of the string will be pushed. If the top value is an array, the values in the array will be pushed in reverse order", "popsplitpush");
     Instruction QUINE = new Instruction(f -> f.getStack().push(CastableValue.of(f.getProgram().getContent())), "load the source code of the program onto the stack", "Pushes the programs source code, as a string, onto the stack", "quine");
     Instruction FUNCTION = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.STRING), f -> {
         String s = f.getCurrentArgEasy().getAsString().get();
@@ -634,10 +655,33 @@ public interface Instructions {
             throw new JAISBaLExecutionException("Could not find function " + s);
         }
     }), Instructions.terminated(), "call function ${arg}", "Calls the given function. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no function exists for the given name", "f", "call");
+    Instruction NAME = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        f.getStack().push(Instructions.name(f.getStack().pop()));
+    }, "take the top value off the stack, determines its name, and push it", "Determines the name of the top value on the stack. If a is a 32-bit integer, a string representation of it's number name is returned, if a is an array, the name of every value in the array is computed, and pushed as a single array. Otherwise, the string value of a is pushed", "name");
     BigDecimal SQRT_DIG = new BigDecimal(150);
     BigDecimal SQRT_PRE = new BigDecimal(1).divide(new BigDecimal(10).pow(SQRT_DIG.intValue()));
     BigDecimal TWO = new BigDecimal("2");
     List<String> TRUTHY = PlasmaListUtil.buildList("true", "yes", "t");
+    static CastableValue name(CastableValue value) {
+        if(value.getValueAs(BigDecimal.class).isPresent()) {
+            try {
+                return CastableValue.of(NumberNames.convert(value.getValueAs(BigDecimal.class).get().intValueExact()));
+            } catch (ArithmeticException e) {
+                return CastableValue.of(value.getAsString().get());
+            }
+        } else if (value.getAsString().isPresent()) {
+            return CastableValue.of(value.getAsString().get());
+        } else if (value.getValueAs(CastableValue[].class).isPresent()) {
+            CastableValue[] array = value.getValueAs(CastableValue[].class).get();
+            for (int i = 0; i < array.length; i++) {
+                array[i] = CastableValue.of(Instructions.name(array[i]));
+            }
+            return CastableValue.of(array);
+        }
+
+        throw new IllegalStateException();
+    }
     static ConstantInstruction constant(CastableValue value, String name) {
         return new ConstantInstruction(value, "push " + name + " onto the stack", "a constant referring that pushes " + name, name.length() == 1 ? new String[0] : new String[]{name});
     }

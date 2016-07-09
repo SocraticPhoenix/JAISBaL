@@ -96,6 +96,7 @@ public class InstructionRegistry implements Instructions {
         r(DIVIDE);
         r(ADD);
         r(SUBTRACT);
+        r(REVERSE);
         r(CONCAT);
         r(SPLIT);
         r(POW);
@@ -117,6 +118,8 @@ public class InstructionRegistry implements Instructions {
         r(ARRAY_LOAD_STACK);
         r(ARRAY_STORE_STACK);
         r(ARRAY_LENGTH);
+        r(ARRAY_SORT);
+        r(ARRAY_SORT_REVERSE);
         r(PUSH_TRUTHY);
         r(PUSH_FALSY);
         r(NEGATE);
@@ -146,6 +149,7 @@ public class InstructionRegistry implements Instructions {
         r(POP_SPLIT_PUSH);
         r(QUINE);
         r(FUNCTION);
+        r(NAME);
 
 
         InstructionRegistry.getBlockStarts().add("for");

@@ -22,6 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.modes;
 
+import com.gmail.socraticphoenix.jaisbal.JAISBaL;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
@@ -93,6 +94,7 @@ public interface CommonMode {
                         System.out.println(PlasmaStringUtil.indent(60, "-"));
                         System.out.println();
                     }
+                    JAISBaL.collectAndPrintInfo(program);
                 } else {
                     System.out.println("\"" + timeS + "\" is not a number");
                 }
@@ -105,6 +107,7 @@ public interface CommonMode {
                     System.out.println(PlasmaStringUtil.indent(60, "-"));
                     System.out.println();
                 }
+                JAISBaL.collectAndPrintInfo(program);
             }
         } else {
             System.out.println("\"" + execRunsS + "\" is not a number");
