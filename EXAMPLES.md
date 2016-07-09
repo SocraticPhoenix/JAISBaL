@@ -23,9 +23,36 @@ end
 ```
 Character:
 ```
-ÈwHello World \# Implicitly collect input (enabled if no arguments specified in main method). No 'end' of for loop since end is end of program. No '}' for value since it is end of program #\
+§wHello World \# Implicitly collect input (enabled if no arguments specified in main method). No 'end' of for loop since end is end of program. No '}' for value since it is end of program #\
 ```
+####Sort and Print Array
+Verbose
+```
+#
+(
+sort_print:
+a?
+loadall     \# load input (non-main function input is stored in local variables) #\
+sort        \# sort the array #\
+popoutallln \# pop and output #\
+)
+a?  \# request input of type wildcard array  #\
+call sort_print \# call function  #\
+```
+Example Run:
+```
+Run #1:
+Enter a value[] > [a][b][1][45][l][c][4321][-3][0][[g][5][hello]][[world][4][[-43][3][53]]]}
+[-3, 0, 1, 45, 4321, a, b, c, l, [g, 5, hello], [world, 4, [-43, 3, 53]]]
 
+--------------------
+Stack: []
+Locals: {0:[-3, 0, 1, 45, 4321, a, b, c, l, [g, 5, hello], [world, 4, [-43, 3, 53]]]}
+------------------------------------------------------------
+
+JAISBaL bytes: 80
+UTF-8 bytes: 80
+```
 ##Command Line Tool Examples
 ####Explaining
 Arguments:
@@ -43,7 +70,7 @@ for                          \# start for loop #\
 ####Executing
 Arguments:
 ```
-mode=input "content=ÈwHello World" action=exec
+mode=input "content=§wHello World" action=exec
 ```
 Output:
 ```
@@ -64,5 +91,5 @@ mode=input "content=#\nfor\nprintterm Hello World" action=minify
 ```
 Output:
 ```
-ÈwHello World
+§wHello World
 ```
