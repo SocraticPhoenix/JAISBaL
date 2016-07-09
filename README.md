@@ -11,6 +11,35 @@ I open to all contributions! Please open a pull request or issue. However, if yo
 - If it is a pull request, properly define the instruction in the [Instructions](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/Instructions.java) class and properly register it in the [InstructionRegistry](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/InstructionRegistry.java) class.
 - If it is an issue/comment, either define the full instruction behavior, or provide a code snippet defining an [Instruction](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/Instruction.java) or [DangerousConsumer<FunctionContext>](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/util/DangerousConsumer.java)
 
+##The JAISBaL Command Line Tool
+A JAISBaL GUI is planned, but currently not implemented.
+Arguments for the JAISBaL command line tool are entered in key-value pairs, such as "mode=file" or "action=exec." See the table below for arguments.
+
+| Argument | Acceptable Values | Description | Optional? |
+| -------- | ----------- | ---------- | ---------- |
+|mode |file, input, gui | defines the input mode for the tool | true (input assumed)|
+|content |JAISBaL program | defines the input for mode=input or mode=gui| false (when mode=input)|
+|file |Existing File |defines the input for mode=file or mode=gui| false (when mode=file)|
+|encoding| utf8, jaisbal| defines the character encoding for file=...| true (jaisbal assumed) |
+|target-encoding | utf8, jaisbal | defines the target character encoding for mode=file | true (jaisbal assumed) |
+|exec-number| integer | defines the number of times to run the program for action=exec| true (1 assumed) |
+|exec-time| iteger | defines the maximum runtime, in milliseconds, of the program for action=exec| true (infinite assumed |
+|input | [JLSCArray](https://gist.github.com/SocraticPhoenix/ea6386fb7a610bdbb8bd) | defines the input for the program for action=exec | true |
+|input-file | [JLSCCompound](https://gist.github.com/SocraticPhoenix/ea6386fb7a610bdbb8bd) with input array at key "input" | defines the input for the program for action=exec | true |
+|action | exec, minify, explain, encode| defines the action the tool should take| false |
+###Actions
+- exec : executes the program exec-number times, and exits after exec-time milliseconds have passed, or execution is finished
+- minify : minifies the given program, and either outputs it to the screen (mode=input) or writes it to the file (mode=file)
+- explain : expands and provides a step-by-step explaination for the given program, and either outputs it to the screen (mode=input) or writes it to the file (mode=file)
+- encode : reads input as encoding, and writes it to target-encoding. Outputs the result to the screen (mode=input), or writes it to the file and outputs it to the screen (mode=file)
+
+###Download
+The JAISBaL command line tool has its entry point in the main [JAISBaL](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/JAISBaL.java) file, and a compiled version can be found published [here](https://dl.bintray.com/meguy26/Main/com/gmail/socraticphoenix/JAISBaL/)
+
+
+##Examples
+Examples for the language and the command line tool can be found in the [Examples](https://github.com/SocraticPhoenix/JAISBaL/blob/master/EXAMPLES.md) document
+
 ##File Format
 JAISBaL files have the extention .isbl (interpreted stack based language), and are either in UTF-8 or the JAISBaL character encodings. JAISBaL defines its own character encodings to maximize byte usage, and JAISBaL provides a [java Charset class] (https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/encode/JAISBaLCharset.java) for its encoding.
 
