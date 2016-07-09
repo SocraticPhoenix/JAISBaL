@@ -20,14 +20,16 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.code.function;
+package com.gmail.socraticphoenix.jaisbal.program.function;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
-import com.gmail.socraticphoenix.jaisbal.code.Program;
-import com.gmail.socraticphoenix.jaisbal.code.Type;
-import com.gmail.socraticphoenix.jaisbal.code.instructions.Instruction;
-import com.gmail.socraticphoenix.jaisbal.code.instructions.InstructionRegistry;
-import com.gmail.socraticphoenix.jaisbal.code.instructions.Instructions;
+import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.Type;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.AuxiliaryConstant;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.AuxiliaryInstruction;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.Instructions;
 import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.base.Triple;
@@ -194,7 +196,22 @@ public class FunctionContext extends PlasmaObject {
         builder.append(System.lineSeparator());
         if (!preProcessed.isEmpty()) {
             for (Triple<Instruction, String, String> piece : preProcessed) {
-                builder.append(piece.getC()).append(PlasmaStringUtil.indent(length - piece.getC().length(), " ")).append(Program.COMMENT_START).append(" ").append(StringFormat.fromString(piece.getA().getDescription()).filler().var("arg", piece.getB()).fill()).append(" ").append(Program.COMMENT_END).append(System.lineSeparator());
+                builder.append(piece.getC()).append(PlasmaStringUtil.indent(length - piece.getC().length(), " ")).append(Program.COMMENT_START).append(" ").append(StringFormat.fromString(piece.getA().getDescription()).filler().var("arg", piece.getB()).fill()).append(" ");
+                try {
+                    if (piece.getA() instanceof AuxiliaryInstruction) {
+                        int i = Integer.parseInt(piece.getB());
+                        Instruction aux = InstructionRegistry.getAuxiliaryInstructions().get(i);
+                        builder.append("(").append(aux.getDescription()).append(")");
+                    } else if (piece.getA() instanceof AuxiliaryConstant) {
+                        int i = Integer.parseInt(piece.getB());
+                        CastableValue aux = InstructionRegistry.getAuxiliaryConstants().get(i);
+                        builder.append("(").append(Program.valueToString(aux)).append(")");
+
+                    }
+                } catch (NumberFormatException | IndexOutOfBoundsException ignore) {
+
+                }
+                builder.append(Program.COMMENT_END).append(System.lineSeparator());
             }
         }
         return builder.toString();

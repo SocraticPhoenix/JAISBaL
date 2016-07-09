@@ -20,7 +20,7 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.code.instructions;
+package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 

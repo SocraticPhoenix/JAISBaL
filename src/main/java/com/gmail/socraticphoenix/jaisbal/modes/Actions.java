@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.modes;
 
-import com.gmail.socraticphoenix.jaisbal.code.Program;
+import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
 
 public interface Actions {

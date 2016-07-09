@@ -20,11 +20,11 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.code;
+package com.gmail.socraticphoenix.jaisbal.program;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
-import com.gmail.socraticphoenix.jaisbal.code.function.Function;
-import com.gmail.socraticphoenix.jaisbal.code.function.FunctionContext;
+import com.gmail.socraticphoenix.jaisbal.program.function.Function;
+import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.file.PlasmaFileUtil;
@@ -97,7 +97,7 @@ public class Program extends PlasmaObject {
 
     public static void applyMainFunctions(Map<String, Function> functions) throws JAISBaLExecutionException {
         try {
-            String piece = new String(PlasmaFileUtil.getResourceBytes("library.isl"), StandardCharsets.UTF_8);
+            String piece = new String(PlasmaFileUtil.getResourceBytes("library.isbl"), StandardCharsets.UTF_8);
             Program.parseFunctions(new CharacterStream(piece), true).stream().map(f -> Function.parse(f, true)).forEach(function -> functions.put(function.getName(), function));
         } catch (Throwable e) {
             throw new JAISBaLExecutionException("Unable to load library.isl", e);

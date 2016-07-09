@@ -22,8 +22,8 @@
  */
 package com.gmail.socraticphoenix.jaisbal.util;
 
-import com.gmail.socraticphoenix.jaisbal.code.function.Function;
-import com.gmail.socraticphoenix.jaisbal.code.function.FunctionContext;
+import com.gmail.socraticphoenix.jaisbal.program.function.Function;
+import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 
 import java.io.IOException;
 

@@ -20,11 +20,11 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.code.instructions;
+package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.code.Program;
-import com.gmail.socraticphoenix.jaisbal.code.Type;
-import com.gmail.socraticphoenix.jaisbal.code.function.FunctionContext;
+import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.Type;
+import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
 import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
 import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
@@ -293,32 +293,6 @@ public interface Instructions {
     Instruction SET_CURRENT_ARG = new Instruction(f -> {
         //Argument setting handled automatically by Program
     }, Instructions.terminated(), "set the current context arg to ${arg}", "Sets the current program argument to the one specified. This instruction takes one argument, terminated by '}' (see pushterm)", "arg");
-    Instruction AUX_INSTRUCTION = new Instruction(f -> {
-        Program.checkUnderflow(1, f);
-        CastableValue value = f.getStack().pop();
-        Type.NUMBER.checkMatches(value);
-        try {
-            int i = value.getValueAs(BigDecimal.class).get().intValueExact();
-            InstructionRegistry.getAuxiliaryInstructions().get(i).getAction().accept(f);
-        } catch (ArithmeticException e) {
-            throw new JAISBaLExecutionException(Program.valueToString(value) + " is not an integer index");
-        } catch (IndexOutOfBoundsException e) {
-            throw new JAISBaLExecutionException("No aux_instruction registered for " + Program.valueToString(value));
-        }
-    }, Instructions.number(), "call auxiliary instruction #${arg}", "Calls the auxiliary instruction registered at the specified index. This instruction takes one argument, a number (see pushnum)", "F", "aux");
-    Instruction AUX_CONSTANT = new Instruction(f -> {
-        Program.checkUnderflow(1, f);
-        CastableValue value = f.getStack().pop();
-        Type.NUMBER.checkMatches(value);
-        try {
-            int i = value.getValueAs(BigDecimal.class).get().intValueExact();
-            f.getStack().push(InstructionRegistry.getAuxiliaryConstants().get(i));
-        } catch (ArithmeticException e) {
-            throw new JAISBaLExecutionException(Program.valueToString(value) + " is not an integer index");
-        } catch (IndexOutOfBoundsException e) {
-            throw new JAISBaLExecutionException("No aux_constant registered for " + Program.valueToString(value));
-        }
-    }, Instructions.number(), "load auxilliary constant #${arg}", "Pushes the auxiliary constant registered at the specified index onto the stack, This instruction takes on argument, a number (see pushnum)", "C", "const");
     Instruction FOR_LOOP = new Instruction(f -> {
         FunctionContext sub = f.subset("for", "end");
         Program.checkUnderflow(1, f);

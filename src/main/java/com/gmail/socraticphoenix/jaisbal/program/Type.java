@@ -20,7 +20,7 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.code;
+package com.gmail.socraticphoenix.jaisbal.program;
 
 import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;

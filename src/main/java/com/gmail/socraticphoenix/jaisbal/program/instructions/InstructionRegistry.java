@@ -20,9 +20,9 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.code.instructions;
+package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.code.Program;
+import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
 import com.gmail.socraticphoenix.plasma.string.TableFormat;
@@ -105,8 +105,8 @@ public class InstructionRegistry implements Instructions {
         r(ROUND);
         r(SQRT);
         r(SET_CURRENT_ARG);
-        r(AUX_INSTRUCTION);
-        r(AUX_CONSTANT);
+        r(new AuxiliaryConstant());
+        r(new AuxiliaryInstruction());
         r(FOR_LOOP);
         r(END);
         r(BREAK);

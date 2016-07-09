@@ -5,6 +5,7 @@ build/
 out/
 generated/
 generated-test/
+jaisbal-backup/
 
 #Files
 gradle.properties

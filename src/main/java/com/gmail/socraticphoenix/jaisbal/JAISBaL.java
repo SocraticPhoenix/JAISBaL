@@ -22,9 +22,9 @@
  */
 package com.gmail.socraticphoenix.jaisbal;
 
-import com.gmail.socraticphoenix.jaisbal.code.Program;
-import com.gmail.socraticphoenix.jaisbal.code.instructions.Instruction;
-import com.gmail.socraticphoenix.jaisbal.code.instructions.InstructionRegistry;
+import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharPage;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.modes.FileMode;

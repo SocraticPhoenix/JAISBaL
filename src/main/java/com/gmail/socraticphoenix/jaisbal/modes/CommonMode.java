@@ -22,8 +22,8 @@
  */
 package com.gmail.socraticphoenix.jaisbal.modes;
 
-import com.gmail.socraticphoenix.jaisbal.code.Program;
-import com.gmail.socraticphoenix.jaisbal.code.function.FunctionContext;
+import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.Stopwatch;

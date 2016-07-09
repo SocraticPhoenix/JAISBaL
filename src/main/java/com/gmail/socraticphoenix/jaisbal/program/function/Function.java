@@ -20,12 +20,12 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.code.function;
+package com.gmail.socraticphoenix.jaisbal.program.function;
 
-import com.gmail.socraticphoenix.jaisbal.code.Program;
-import com.gmail.socraticphoenix.jaisbal.code.Type;
-import com.gmail.socraticphoenix.jaisbal.code.instructions.Instruction;
-import com.gmail.socraticphoenix.jaisbal.code.instructions.InstructionRegistry;
+import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.Type;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
 import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
