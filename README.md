@@ -83,7 +83,7 @@ will behave completley differently from the character program:
 hhello world /# h is the character id for print1 #/
 ```
 ##The Enviroment
-JAISBaL is heavily inspired by the JVM, and has both a stack and variable register. Variables are registered at 64-bit indices, and can be stored and loaded on a whim. JAISBaL is technically statically typed, but most instructions attempt to define behavior for all possible operands. Moreover, numbers are represeted as arbitrary precision [BigDecimals](https://docs.oracle.com/javase/7/docs/api/java/math/BigDecimal.html), and can be converted to and from strings.
+JAISBaL is heavily inspired by the JVM, and has both a stack and variable register. Variables are registered at 64-bit indices, and can be stored and loaded on a whim. JAISBaL is technically statically typed, but most instructions attempt to define behavior for all possible operands. Moreover, numbers are represeted as arbitrary precision [BigDecimals](https://docs.oracle.com/javase/7/docs/api/java/math/BigDecimal.html), and can be converted to and from strings. Finally, JAISBaL handles control flow with function frames. Blocks and functions both create their own function frame, however a block's function frame shares its stack with the parent function frame, whereas functions do not. This has the unfortunate consequence of 'break' affecting if statements as well, but that's a feature, not a bug ;)
 
 ##Instruction Reference
 Below is the JAISBaL instruction reference. Be warned that it is subject to change.
