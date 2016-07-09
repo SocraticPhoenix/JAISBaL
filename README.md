@@ -3,6 +3,14 @@
 
 JAISBaL is Just Another Intepreted Stack-Based Language, created by me. JAISBaL is meant to be a golfing language for dummies and fanatics alike, and features a verbose and character parsing modes, as well as a minifier and explainer function. The JAISBaL intepreter is written in Java, and this repository contains its source code. The JAISBaL grammar specification is fully developed, though not all instructions are defined.
 
+##This Repository
+I open to all contributions! Please open a pull request or issue. However, if you decide to add an instruction, please do the following:
+
+- Specify whether your new instruction is standard, supplementary, constant, auxiliary, or auxiliary constant
+- Explain why you believe the instruction best fits the given category
+- If it is a pull request, properly define the instruction in the [Instructions](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/Instructions.java) class and properly register it in the [InstructionRegistry](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/InstructionRegistry.java) class.
+- If it is an issue/comment, either define the full instruction behavior, or provide a code snippet defining an [Instruction](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/Instruction.java) or [DangerousConsumer<FunctionContext>](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/util/DangerousConsumer.java)
+
 ##File Format
 JAISBaL files have the extention .isbl (interpreted stack based language), and are either in UTF-8 or the JAISBaL character encodings. JAISBaL defines its own character encodings to maximize byte usage, and JAISBaL provides a [java Charset class] (https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/encode/JAISBaLCharset.java) for its encoding.
 
