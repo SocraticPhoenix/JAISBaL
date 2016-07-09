@@ -57,7 +57,7 @@ UTF-8 bytes: 80
 ####Explaining
 Arguments:
 ```
-mode=input "content=ÈwHello World}" action=explain
+mode=input "content=§wHello World}" action=explain
 ```
 Output:
 ```
