@@ -35,6 +35,12 @@ Arguments for the JAISBaL command line tool are entered in key-value pairs, such
 - explain : expands and provides a step-by-step explaination for the given program, and either outputs it to the screen (mode=input) or writes it to the file (mode=file)
 - encode : reads input as encoding, and writes it to target-encoding. Outputs the result to the screen (mode=input), or writes it to the file and outputs it to the screen (mode=file)
 
+The simplest way to run a program is by executing the command line tool with the arguments 
+```
+mode=input action=exec "content=<program>"
+```
+Just remeber to escape any " or \ characters in the program itself
+
 ###Download
 The JAISBaL command line tool has its entry point in the main [JAISBaL](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/JAISBaL.java) file, and a compiled version can be found published [here](https://dl.bintray.com/meguy26/Main/com/gmail/socraticphoenix/JAISBaL/)
 
