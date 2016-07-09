@@ -1,6 +1,8 @@
 # JAISBaL
 (pronounced jace-ball)
 
+**DISCLAIMER:** JAISBaL is currently under development! Character pages and instruction ids may change without notice!
+
 JAISBaL is Just Another Intepreted Stack-Based Language, created by me. JAISBaL is meant to be a golfing language for dummies and fanatics alike, and features a verbose and character parsing modes, as well as a minifier and explainer function. The JAISBaL intepreter is written in Java, and this repository contains its source code. The JAISBaL grammar specification is fully developed, though not all instructions are defined.
 
 ##This Repository
