@@ -152,35 +152,35 @@ public class JAISBaL {
 
     public static void generateSpecFile() throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter("generated-spec.txt"));
-        writer.write("Standard Instructions");
-        writer.newLine();
+        writer.write("Standard Instructions, ");
         writer.write(InstructionRegistry.getStandardInstructions().size() + " defined");
         writer.newLine();
-        writer.write(InstructionRegistry.getStandardInstructionsDocumentation().format());
         writer.newLine();
-        writer.write("Supplementary Instructions");
+        writer.write(InstructionRegistry.getStandardInstructionsDocumentation().githubFormat());
         writer.newLine();
+        writer.write("Supplementary Instructions, ");
         writer.write(InstructionRegistry.getSupplementaryInstructions().size() + " defined");
         writer.newLine();
-        writer.write(InstructionRegistry.getSupplementaryInstructionsDocumentation().format());
         writer.newLine();
-        writer.write("Standard Constants");
+        writer.write(InstructionRegistry.getSupplementaryInstructionsDocumentation().githubFormat());
         writer.newLine();
+        writer.write("Standard Constants, ");
         writer.write(InstructionRegistry.getConstants().size() + " defined");
         writer.newLine();
-        writer.write(InstructionRegistry.getConstantsDocumentation().format());
         writer.newLine();
-        writer.write("Auxiliary Instructions");
+        writer.write(InstructionRegistry.getConstantsDocumentation().githubFormat());
         writer.newLine();
+        writer.write("Auxiliary Instructions, ");
         writer.write(InstructionRegistry.getAuxiliaryInstructions().size() + " defined");
         writer.newLine();
-        writer.write(InstructionRegistry.getAuxiliaryInstructionsDocumentation().format());
         writer.newLine();
-        writer.write("Auxiliary Constants");
+        writer.write(InstructionRegistry.getAuxiliaryInstructionsDocumentation().githubFormat());
         writer.newLine();
+        writer.write("Auxiliary Constants, ");
         writer.write(InstructionRegistry.getAuxiliaryConstants().size() + " available");
         writer.newLine();
-        writer.write(InstructionRegistry.getAuxiliaryConstantsDocumentation().format());
+        writer.newLine();
+        writer.write(InstructionRegistry.getAuxiliaryConstantsDocumentation().githubFormat());
         writer.close();
     }
 

@@ -310,6 +310,27 @@ public interface Instructions {
     }, "end current language construct", "Ends a loop, if, ifelse, or other statement", "end");
     Instruction BREAK = new Instruction(f -> {
     }, "break out of the current function frame", "Breaks out of the current function frame", "break");
+    Instruction ARRAY_CREATE = new Instruction(f -> {
+        CastableValue index = f.getCurrentArgEasy();
+        Type.NUMBER.checkMatches(index);
+        try {
+            CastableValue[] array = new CastableValue[index.getValueAs(BigDecimal.class).get().intValueExact()];
+            f.getStack().push(CastableValue.of(array));
+        } catch (ArithmeticException e) {
+            throw new JAISBaLExecutionException(Program.valueToString(index) + " is not a 32-bit integer index");
+        }
+    }, Instructions.number(), "create and push new array with length ${arg}", "Creates a new array with the given length. This instruction takes one argument, a number (see pushnum)", "newarray");
+    Instruction ARRAY_CREATE_STACK = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        CastableValue index = f.getStack().pop();
+        Type.NUMBER.checkMatches(index);
+        try {
+            CastableValue[] array = new CastableValue[index.getValueAs(BigDecimal.class).get().intValueExact()];
+            f.getStack().push(CastableValue.of(array));
+        } catch (ArithmeticException e) {
+            throw new JAISBaLExecutionException(Program.valueToString(index) + " is not a 32-bit integer index");
+        }
+    }, Instructions.number(), "create and push new array with length <top value of stack>", "Creates a new array with the length a. This instruction fails if a is not a 32-bit integer index", "snewarray");
     Instruction ARRAY_LOAD_STACK = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         CastableValue index = f.getStack().pop();

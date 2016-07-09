@@ -110,9 +110,11 @@ public class InstructionRegistry implements Instructions {
         r(FOR_LOOP);
         r(END);
         r(BREAK);
+        r(ARRAY_CREATE);
         r(ARRAY_LOAD);
-        r(ARRAY_LOAD_STACK);
         r(ARRAY_STORE);
+        r(ARRAY_CREATE_STACK);
+        r(ARRAY_LOAD_STACK);
         r(ARRAY_STORE_STACK);
         r(ARRAY_LENGTH);
         r(PUSH_TRUTHY);

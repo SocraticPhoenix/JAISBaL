@@ -24,12 +24,12 @@ apply plugin : 'net.sf.gapt'
 
 //Program Specific Variables (Fill these in)
 def programVersion = "0.0.0"
-def programGroup = "com.socraticphoenix.gmail"
+def programGroup = "com.gmail.socraticphoenix"
 def programName = "JAISBaL"
-def repoName = ""
-def repoPackageName = ""
-def programLicense = ""
-def versionControlURL = ""
+def repoName = "Main"
+def repoPackageName = "java-apps"
+def programLicense = "MIT"
+def versionControlURL = "https://github.com/SocraticPhoenix/JAISBaL.git"
 //End Variables
 
 //Gradle Variables
@@ -55,8 +55,7 @@ repositories {
 }
 
 dependencies {
-    shadow fileTree(dir: "lib", include: "*.jar")
-}
+    shadow "com.gmail.socraticphoenix:PlasmaAPI:2.1.0"}
 //End Repositories and Dependencies
 
 //Tasks
@@ -112,8 +111,8 @@ publishing {
 }
 
 bintray {
-    user = ""
-    key = ""
+    user = bintrayUser
+    key = bintrayKey
     publications = ["maven"]
     publish = true
     pkg {
