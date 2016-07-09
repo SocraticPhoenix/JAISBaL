@@ -100,7 +100,7 @@ public class Program extends PlasmaObject {
             String piece = new String(PlasmaFileUtil.getResourceBytes("library.isbl"), StandardCharsets.UTF_8);
             Program.parseFunctions(new CharacterStream(piece), true).stream().map(f -> Function.parse(f, true)).forEach(function -> functions.put(function.getName(), function));
         } catch (Throwable e) {
-            throw new JAISBaLExecutionException("Unable to load library.isl", e);
+            throw new JAISBaLExecutionException("Unable to load library.isbl", e);
         }
     }
 

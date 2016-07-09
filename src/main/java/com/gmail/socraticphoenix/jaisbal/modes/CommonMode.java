@@ -23,9 +23,9 @@
 package com.gmail.socraticphoenix.jaisbal.modes;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
+import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.Stopwatch;
 import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -53,8 +52,6 @@ public interface CommonMode {
             }
         }
 
-        System.out.println("Encoded bytes:");
-        System.out.println(Arrays.toString(in.getBytes(charset)));
         OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), charset);
         writer.write(in);
         writer.close();

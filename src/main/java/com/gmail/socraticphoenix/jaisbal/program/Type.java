@@ -94,10 +94,6 @@ public class Type extends PlasmaObject {
         }
     }
 
-    public static String traverseValues(CharacterStream stream, Program program) {
-        return null;
-    }
-
     public static CastableValue[] readValues(CharacterStream stream, Program program) {
         BracketCounter counter = new BracketCounter();
         counter.registerBrackets('[', ']');
@@ -146,7 +142,7 @@ public class Type extends PlasmaObject {
 
     public String toString() {
         if (this.isArray()) {
-            return 'a' + this.array + this.arrayType.toString();
+            return 'a' + "" + this.array + this.arrayType.toString();
         } else {
             return String.valueOf(this.type);
         }

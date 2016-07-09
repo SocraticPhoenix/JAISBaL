@@ -101,7 +101,7 @@ public class Function extends PlasmaObject {
         if (!stream.hasNext()) {
             throw stream.syntaxError("Expected function");
         } else {
-            stream.consumeAll(Program.IGNORE);
+            stream.consumeAll(Program.IGNORE_SPACE);
             List<Type> parameters = new ArrayList<>();
             String name;
             if (s.indexOf(':') > 0 && s.indexOf(':') - 1 != s.indexOf('`')) {
@@ -110,9 +110,9 @@ public class Function extends PlasmaObject {
                 } else {
                     StringBuilder nameB = new StringBuilder();
                     while (stream.hasNext()) {
-                        String piece = stream.nextUntil((Predicate<Character>) c -> c == ':' || new String(verbose ? Program.IGNORE_VERBOSE : Program.IGNORE).indexOf(c) > 0);
+                        String piece = stream.nextUntil((Predicate<Character>) c -> c == ':' || new String(verbose ? Program.IGNORE_VERBOSE_SPACE : Program.IGNORE_SPACE).indexOf(c) > 0);
                         nameB.append(piece);
-                        stream.consumeAll(verbose ? Program.IGNORE_VERBOSE : Program.IGNORE);
+                        stream.consumeAll(verbose ? Program.IGNORE_VERBOSE_SPACE : Program.IGNORE_SPACE);
                         if (stream.isNext(':')) {
                             stream.consume(':');
                             break;

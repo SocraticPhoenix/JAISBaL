@@ -647,14 +647,15 @@ public interface Instructions {
         }
     }, "take the top value off the stack, split it up, and push each piece", "Pops the top value off the stack, splits it, and pushes each piece onto the stack. If the top value is a string or number, it will be converted to a string, and each character of the string will be pushed. If the top value is an array, the values in the array will be pushed in reverse order", "popsplitpush");
     Instruction QUINE = new Instruction(f -> f.getStack().push(CastableValue.of(f.getProgram().getContent())), "load the source code of the program onto the stack", "Pushes the programs source code, as a string, onto the stack", "quine");
-    Instruction FUNCTION = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.STRING), f -> {
+    Instruction FUNCTION = new Instruction(f -> {
+        Type.STRING.checkMatches(f.getCurrentArgEasy());
         String s = f.getCurrentArgEasy().getAsString().get();
         if (f.getProgram().getFunction(s).isPresent()) {
             f.getProgram().getFunction(s).get().run(f.getStack());
         } else {
             throw new JAISBaLExecutionException("Could not find function " + s);
         }
-    }), Instructions.terminated(), "call function ${arg}", "Calls the given function. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no function exists for the given name", "f", "call");
+    }, Instructions.terminated(), "call function ${arg}", "Calls the given function. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no function exists for the given name", "f", "call");
     Instruction NAME = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         f.getStack().push(Instructions.name(f.getStack().pop()));
@@ -991,8 +992,9 @@ public interface Instructions {
             BracketCounter counter = new BracketCounter();
             counter.registerBrackets('[', ']');
             String s = c.nextUntil(z -> z == '}', counter, new QuotationTracker(), Program.ESCAPER, false);
+            boolean end = c.isNext('}');
             c.consume('}');
-            return s;
+            return s + (end ? "}" : "");
         };
     }
 }

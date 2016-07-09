@@ -363,7 +363,7 @@ public class JAISBaL {
 
         for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++) {
             String current = builder.toString();
-            if (StandardCharsets.ISO_8859_1.newEncoder().canEncode((char) i) && !Character.isISOControl(i) && !Character.isWhitespace(i) && current.indexOf(i) == -1 && Character.getDirectionality(i) == Character.DIRECTIONALITY_LEFT_TO_RIGHT) {
+            if (StandardCharsets.ISO_8859_1.newEncoder().canEncode((char) i) && !Character.isISOControl(i) && !Character.isWhitespace(i) && current.indexOf(i) == -1 && font.canDisplay(i) && (Character.getDirectionality(i) == Character.DIRECTIONALITY_LEFT_TO_RIGHT || Character.getDirectionality(i) == Character.DIRECTIONALITY_OTHER_NEUTRALS)) {
                 builder.append((char) i);
             }
         }

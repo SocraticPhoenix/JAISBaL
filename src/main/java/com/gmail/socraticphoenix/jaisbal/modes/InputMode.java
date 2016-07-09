@@ -49,21 +49,25 @@ public class InputMode implements DangerousConsumer<Map<String, String>> {
             System.out.println("Unknown charset \"" + args.get("encoding") + "\"");
         }
 
+        String content = args.get("content");
+        content = PlasmaStringUtil.deEscape(content);
+        content = content == null ? args.get("content") : content;
+        
         switch (args.get("action")) {
             case "exec": {
-                CommonMode.commonExec(args.get("content"), args);
+                CommonMode.commonExec(content, args);
                 break;
             }
             case "minify": {
-                System.out.println(Actions.MINIFY.apply(args.get("content")));
+                System.out.println(Actions.MINIFY.apply(content));
                 break;
             }
             case "explain": {
-                System.out.println(Actions.EXPLAIN.apply(args.get("content")));
+                System.out.println(Actions.EXPLAIN.apply(content));
                 break;
             }
             case "encode": {
-                String in = args.get("content");
+                String in = content;
                 Charset charset = JAISBaLCharset.get(args.get("target-encoding"));
                 CharsetEncoder encoder = charset.newEncoder();
                 for (char c : in.toCharArray()) {
