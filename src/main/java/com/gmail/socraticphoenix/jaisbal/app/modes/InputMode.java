@@ -20,11 +20,14 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.modes;
+package com.gmail.socraticphoenix.jaisbal.app.modes;
 
+import com.gmail.socraticphoenix.jaisbal.JAISBaL;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
+import com.gmail.socraticphoenix.jaisbal.app.util.InSupplier;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.Terminable;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
 
 import java.io.IOException;
@@ -37,16 +40,25 @@ public class InputMode implements DangerousConsumer<Map<String, String>> {
 
     @Override
     public void accept(Map<String, String> args) throws JAISBaLExecutionException, IOException {
+        JAISBaL.setIn(new InSupplier());
+
         if (!args.containsKey("content")) {
-            System.out.println("No content specified");
+            JAISBaL.getOut().println("No content specified");
             return;
         }
 
         try {
             JAISBaLCharset.get(args.get("encoding"));
+        } catch (IllegalArgumentException e) {
+            JAISBaL.getOut().println("Unknown charset \"" + args.get("encoding") + "\"");
+            return;
+        }
+
+        try {
             JAISBaLCharset.get(args.get("target-encoding"));
         } catch (IllegalArgumentException e) {
-            System.out.println("Unknown charset \"" + args.get("encoding") + "\"");
+            JAISBaL.getOut().println("Unknown charset \"" + args.get("target-encoding") + "\"");
+            return;
         }
 
         String content = args.get("content");
@@ -59,11 +71,11 @@ public class InputMode implements DangerousConsumer<Map<String, String>> {
                 break;
             }
             case "minify": {
-                System.out.println(Actions.MINIFY.apply(content));
+                JAISBaL.getOut().println(Actions.MINIFY.apply(content));
                 break;
             }
             case "explain": {
-                System.out.println(Actions.EXPLAIN.apply(content));
+                JAISBaL.getOut().println(Actions.EXPLAIN.apply(content));
                 break;
             }
             case "encode": {
@@ -72,18 +84,22 @@ public class InputMode implements DangerousConsumer<Map<String, String>> {
                 CharsetEncoder encoder = charset.newEncoder();
                 for (char c : in.toCharArray()) {
                     if (!encoder.canEncode(c)) {
-                        System.out.println("The " + args.get("encoding") + " Charset does not support '" + PlasmaStringUtil.escape(String.valueOf(c)) + "'");
+                        JAISBaL.getOut().println("The " + args.get("encoding") + " Charset does not support '" + PlasmaStringUtil.escape(String.valueOf(c)) + "'");
                         return;
                     }
                 }
 
-                System.out.println("Encoded bytes:");
-                System.out.println(Arrays.toString(in.getBytes(charset)));
+                JAISBaL.getOut().println("Encoded bytes:");
+                JAISBaL.getOut().println(Arrays.toString(in.getBytes(charset)));
                 break;
             }
             default: {
-                System.out.println("Unknown action \"" + args.get("action" + "\""));
+                JAISBaL.getOut().println("Unknown action \"" + args.get("action" + "\""));
             }
+        }
+
+        if (JAISBaL.getIn() instanceof Terminable) {
+            ((Terminable) JAISBaL.getIn()).terminate();
         }
     }
 

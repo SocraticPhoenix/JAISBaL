@@ -23,8 +23,8 @@
 package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousFunction;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.CharacterStream;
 

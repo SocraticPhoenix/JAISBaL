@@ -20,11 +20,14 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.modes;
+package com.gmail.socraticphoenix.jaisbal.app.modes;
 
+import com.gmail.socraticphoenix.jaisbal.JAISBaL;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
+import com.gmail.socraticphoenix.jaisbal.app.util.InSupplier;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.Terminable;
 import com.gmail.socraticphoenix.plasma.file.PlasmaFileUtil;
 
 import java.io.File;
@@ -37,24 +40,33 @@ public class FileMode implements DangerousConsumer<Map<String, String>> {
 
     @Override
     public void accept(Map<String, String> args) throws IOException, JAISBaLExecutionException {
+        JAISBaL.setIn(new InSupplier());
+
         if (!args.containsKey("file")) {
-            System.out.println("No file specified");
+            JAISBaL.getOut().println("No file specified");
             return;
         }
 
         File file = new File(args.get("file"));
         if (!file.exists()) {
-            System.out.println("Couldn't find file \"" + file.getAbsolutePath() + "\"");
+            JAISBaL.getOut().println("Couldn't find file \"" + file.getAbsolutePath() + "\"");
             return;
         }
 
         try {
             JAISBaLCharset.get(args.get("encoding"));
-            JAISBaLCharset.get(args.get("target-encoding"));
         } catch (IllegalArgumentException e) {
-            System.out.println("Unknown charset \"" + args.get("encoding") + "\"");
+            JAISBaL.getOut().println("Unknown charset \"" + args.get("encoding") + "\"");
             return;
         }
+
+        try {
+            JAISBaLCharset.get(args.get("target-encoding"));
+        } catch (IllegalArgumentException e) {
+            JAISBaL.getOut().println("Unknown charset \"" + args.get("target-encoding") + "\"");
+            return;
+        }
+
         StringBuilder content = new StringBuilder();
         InputStreamReader reader = new InputStreamReader(new FileInputStream(file), JAISBaLCharset.get(args.get("encoding")));
         int i;
@@ -81,13 +93,17 @@ public class FileMode implements DangerousConsumer<Map<String, String>> {
                 break;
             }
             case "view": {
-                System.out.println(content);
+                JAISBaL.getOut().println(content);
             }
             case "encode": {
                 this.backup(file);
                 CommonMode.commonWrite(content.toString(), file, args);
                 break;
             }
+        }
+
+        if (JAISBaL.getIn() instanceof Terminable) {
+            ((Terminable) JAISBaL.getIn()).terminate();
         }
     }
 

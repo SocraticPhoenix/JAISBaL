@@ -26,7 +26,7 @@ import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.BracketCounter;
@@ -202,5 +202,9 @@ public class Function extends PlasmaObject {
 
     public boolean isImplicitInput() {
         return this.implicitInput;
+    }
+
+    public void verify() throws JAISBaLExecutionException {
+        this.createContext().verify();
     }
 }

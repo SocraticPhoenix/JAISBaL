@@ -20,17 +20,41 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.modes;
+package com.gmail.socraticphoenix.jaisbal.app.util;
 
-import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
-import java.util.Map;
-
-public class GuiMode implements DangerousConsumer<Map<String, String>> {
+public class LoopedSupplier implements Supplier<String>, Terminable {
+    private List<String> supply = new CopyOnWriteArrayList<>();
+    private boolean running = true;
 
     @Override
-    public void accept(Map<String, String> stringStringMap) {
-        System.out.println("GUI mode not currently supported");
+    public String get() {
+        while (this.supply.size() <= 0 && this.running);
+        if(this.running) {
+            return this.supply.remove(0);
+        } else {
+            return null;
+        }
     }
 
+    public void clear() {
+        this.supply.clear();
+    }
+
+    public void add(String s) {
+        supply.add(s);
+    }
+
+    @Override
+    public void terminate() {
+        this.running = false;
+    }
+
+    @Override
+    public void restart() {
+        this.running = true;
+    }
 }

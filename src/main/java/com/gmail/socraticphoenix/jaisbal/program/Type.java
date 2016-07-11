@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program;
 
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
@@ -117,8 +117,12 @@ public class Type extends PlasmaObject {
             }
         } else {
             String v = Program.ESCAPER.deEscape(value);
-            String s = PlasmaStringUtil.deEscape(v);
-            return new CastableValue[]{new CastableValue(s == null ? v : s)};
+            if(PlasmaMathUtil.isBigDecimal(v)) {
+                return new CastableValue[]{new CastableValue(new BigDecimal(v))};
+            } else {
+                String s = PlasmaStringUtil.deEscape(v);
+                return new CastableValue[]{new CastableValue(s == null ? v : s)};
+            }
         }
 
         return values.toArray(new CastableValue[values.size()]);
@@ -142,11 +146,12 @@ public class Type extends PlasmaObject {
 
     public String toString() {
         if (this.isArray()) {
-            return 'a' + "" + this.array + this.arrayType.toString();
+            return 'a' + "" + (this.array == -1 ? "" : this.array) + this.arrayType.toString();
         } else {
             return String.valueOf(this.type);
         }
     }
+
 
     public boolean matches(CastableValue value) {
         if (this.isWildcard() || this.isImplicit()) {

@@ -20,26 +20,28 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.util;
+package com.gmail.socraticphoenix.jaisbal.app.util;
 
-import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
-import com.gmail.socraticphoenix.plasma.reflection.util.Caster;
+public class JAISBaLExecutionException extends Exception {
 
-import java.math.BigDecimal;
-
-public class StringNumberCaster implements Caster {
-    @Override
-    public Object cast(Object o, Class aClass) {
-        if(o instanceof String) {
-            return new BigDecimal((String) o);
-        } else {
-            return String.valueOf(o);
-        }
+    public JAISBaLExecutionException() {
+        super();
     }
 
-    @Override
-    public boolean canCast(Object o, Class aClass) {
-        return (o instanceof String && BigDecimal.class.equals(aClass) && PlasmaMathUtil.isBigDecimal((String) o)) ||
-                (o instanceof BigDecimal && String.class.equals(aClass) );
+    public JAISBaLExecutionException(String message) {
+        super(message);
     }
+
+    public JAISBaLExecutionException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public JAISBaLExecutionException(Throwable cause) {
+        super(cause);
+    }
+
+    protected JAISBaLExecutionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
+
 }

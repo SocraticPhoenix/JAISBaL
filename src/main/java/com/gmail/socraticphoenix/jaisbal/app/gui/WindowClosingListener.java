@@ -20,14 +20,41 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.modes;
+package com.gmail.socraticphoenix.jaisbal.app.gui;
 
-import com.gmail.socraticphoenix.jaisbal.program.Program;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
-public interface Actions {
+@FunctionalInterface
+public interface WindowClosingListener extends WindowListener {
 
-    DangerousFunction<String, String> MINIFY = s -> Program.parse(s).minify();
-    DangerousFunction<String, String> EXPLAIN = s -> Program.parse(s).explain();
+    @Override
+    default void windowOpened(WindowEvent e) {
 
+    }
+
+    @Override
+    default void windowClosed(WindowEvent e) {
+
+    }
+
+    @Override
+    default void windowIconified(WindowEvent e) {
+
+    }
+
+    @Override
+    default void windowDeiconified(WindowEvent e) {
+
+    }
+
+    @Override
+    default void windowActivated(WindowEvent e) {
+
+    }
+
+    @Override
+    default void windowDeactivated(WindowEvent e) {
+
+    }
 }

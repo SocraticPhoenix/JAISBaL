@@ -22,14 +22,16 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
+import com.gmail.socraticphoenix.jaisbal.JAISBaL;
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousFunction;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.NumberNames;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
-import com.gmail.socraticphoenix.jaisbal.util.NumberNames;
 import com.gmail.socraticphoenix.plasma.collection.PlasmaListUtil;
+import com.gmail.socraticphoenix.plasma.math.IntRange;
 import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.BracketCounter;
@@ -43,6 +45,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -51,19 +54,19 @@ public interface Instructions {
     Instruction PUSH_TERMINATED = new Instruction(f -> f.getStack().push(f.getCurrentArgEasy()), Instructions.terminated(), "push ${arg} onto the stack", "Pushes any value onto the stack. This instruction takes one argument, and continues reading the argument until the '}' terminating character is found. '}' can be escaped or nested in [] to allow it to be used in the value itself", "pushterm");
     Instruction PUSH_NUMBER_OUTPUT = new Instruction(f -> {
         f.getStack().push(f.getCurrentArgEasy());
-        System.out.print(f.getStack().pop());
+        JAISBaL.getOut().print(f.getStack().pop());
     }, Instructions.number(), "print ${arg}", "Pushes a number onto the stack (see pushnum), and then pops and prints the number", "printnum");
     Instruction PUSH_TERMINATED_OUTPUT = new Instruction(f -> {
         f.getStack().push(f.getCurrentArgEasy());
-        System.out.print(Program.valueToString(f.getStack().pop()));
+        JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
     }, Instructions.terminated(), "print ${arg}", "Pushes any value onto the stack (see pushterm), and then pops and prints the value", "printterm");
     Instruction PUSH_NUMBER_OUTPUT_NEWLINE = new Instruction(f -> {
         f.getStack().push(f.getCurrentArgEasy());
-        System.out.print(Program.valueToString(f.getStack().pop()));
+        JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
     }, Instructions.number(), "print ${arg}", "Pushes a number onto the stack (see pushnum), and then pops and prints the number, followed by a newline", "printnumln");
     Instruction PUSH_TERMINATED_OUTPUT_NEWLINE = new Instruction(f -> {
         f.getStack().push(f.getCurrentArgEasy());
-        System.out.println(Program.valueToString(f.getStack().pop()));
+        JAISBaL.getOut().println(Program.valueToString(f.getStack().pop()));
     }, Instructions.terminated(), "print ${arg}", "Pushes any value onto the stack (see pushterm), and then pops and prints the value, followed by a newline", "printtermln");
     Instruction POP = new Instruction(f -> {
         Program.checkUnderflow(1, f);
@@ -179,30 +182,30 @@ public interface Instructions {
     Instruction STORE_ALL_LOAD_ALL = new Instruction(Instructions.compose(Instructions.STORE_ALL.getAction(), Instructions.LOAD_ALL.getAction()), "store all variables on the stack, then load all variables", "Stores all variables and then loads all variables (see loadall and storeall)", "storeloadall");
     Instruction POP_OUTPUT = new Instruction(f -> {
         Program.checkUnderflow(1, f);
-        System.out.print(Program.valueToString(f.getStack().pop()));
+        JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
     }, "pop the top value of a stack and print it", "Pops the top value off the stack and prints it", "popout");
     Instruction POP_OUTPUT_NEWLINE = new Instruction(f -> {
         Program.checkUnderflow(1, f);
-        System.out.println(Program.valueToString(f.getStack().pop()));
+        JAISBaL.getOut().println(Program.valueToString(f.getStack().pop()));
     }, "pop the top value off a stack and print it with a new line", "Pops the top value off the stack and prints it, followed by a new line", "popoutln");
     Instruction POP_OUTPUT_ALL = new Instruction(f -> {
         while (!f.getStack().isEmpty()) {
-            System.out.print(Program.valueToString(f.getStack().pop()));
+            JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
         }
     }, "pop off every value in the stack and print it", "Pops every value off the stack, and prints each one", "popoutall");
     Instruction POP_OUTPUT_ALL_NEWLINE = new Instruction(f -> {
         while (!f.getStack().isEmpty()) {
-            System.out.print(Program.valueToString(f.getStack().pop()));
+            JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
         }
     }, "pop off every value in the stack and print each one with a new line", "Pops every value off the stack, and prints each one on a separate line", "popoutallln");
     Instruction NEW_LINE = new Instruction(f -> {
-        System.out.println();
+        JAISBaL.getOut().println();
     }, "print a new line", "Prints a newline", "ln");
     Instruction SPACE = new Instruction(f -> {
-        System.out.print(" ");
+        JAISBaL.getOut().print(" ");
     }, "print a space", "Prints a space", "space");
     Instruction TAB = new Instruction(f -> {
-        System.out.print("\t");
+        JAISBaL.getOut().print("\t");
     }, "print a tab", "Prints a tab", "tab");
     Instruction PUSH_NEW_LINE = new Instruction(f -> {
         f.getStack().push(CastableValue.of(System.lineSeparator()));
@@ -216,23 +219,23 @@ public interface Instructions {
     Instruction MULTIPLY = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(Instructions.mul(f.getStack().pop(), f.getStack().pop()));
-    }, "multiply the top two values of the stack", "Multiplies a and b. If a and b are both numbers, normal multiplication will occur. If either a or b is an array, and the other is a non-array, every value in the array will be multiplied by the other value. If either a or b is a string, and the other is a number, the string will be duplicated <number> times. If both a and b are strings, the number of characters in a which are also in b will be pushed. Finally, if both values are arrays, a new array will be created with the length of the longer array, and every value in the new array will be the result of multiplication of same-indexed values in a and b", "*", "mul");
+    }, "multiply the top two values of the stack", "Multiplies a and b. If a and b are both numbers, normal multiplication will occur. If either a or b is an array, and the other is a non-array, every value in the array will be multiplied by the other value. If either a or b is a string, and the other is a number, the string will be duplicated <number> times. If both a and b are strings, the number of characters in a which are also in b will be pushed. Finally, if both values are arrays, a new array will be created with the length of the longer array, and every value in the new array will be the result of multiplication of same-indexed values in a and b. This instruction will fail if a and/or b is an array, and a contains a or b, or b contains a or b", "*", "mul");
     Instruction DIVIDE = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(Instructions.div(f.getStack().pop(), f.getStack().pop()));
-    }, "divide the top value of the stack by the second value on the stack", "Divides a by b. If a and b are both numbers, normal division will occur. If either a or b is an array, and the other is a non-array, every value in the array will be divided by the other value. If a or b is a string, and the other is a number, a and b will both be converted to strings and divided. If a and b are both strings, the number of characters in a which are not in b will be pushed. Finally, if both values are arrays, a new array will be created with the length of the smaller array, and every value in the array will be the result of division of same-indexed values in a and b", "/", "div");
+    }, "divide the top value of the stack by the second value on the stack", "Divides a by b. If a and b are both numbers, normal division will occur. If either a or b is an array, and the other is a non-array, every value in the array will be divided by the other value. If a or b is a string, and the other is a number, a and b will both be converted to strings and divided. If a and b are both strings, the number of characters in a which are not in b will be pushed. Finally, if both values are arrays, a new array will be created with the length of the smaller array, and every value in the array will be the result of division of same-indexed values in a and b. This instruction will fail if a and/or b is an array, and a contains a or b, or b contains a or b", "/", "div");
     Instruction ADD = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(Instructions.add(f.getStack().pop(), f.getStack().pop()));
-    }, "add the top two values of the stack", "Adds a and b. If a and b are both numbers, normal addition will occur. If either a or b is an array, and the other is a non-array, the other value will be added to every value in the array. If a or b is a string, and the other is a number, a and b will both be converted to strings and added. If a and b are strings, the length of the longest substring of a that is also present in b will be pushed. Finally, if both values are arrays, a new array will be created with a length of the longer array, and every value in the new array will be the result of addition of same-indexed values in a and b", "+", "add");
+    }, "add the top two values of the stack", "Adds a and b. If a and b are both numbers, normal addition will occur. If either a or b is an array, and the other is a non-array, the other value will be added to every value in the array. If a or b is a string, and the other is a number, a and b will both be converted to strings and added. If a and b are strings, the length of the longest substring of a that is also present in b will be pushed. Finally, if both values are arrays, a new array will be created with a length of the longer array, and every value in the new array will be the result of addition of same-indexed values in a and b. This instruction will fail if a or b is an array, and a contains a and/or b, or b contains a or b", "+", "add");
     Instruction SUBTRACT = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(Instructions.sub(f.getStack().pop(), f.getStack().pop()));
-    }, "subtract the second value on the stack from the top value on the stack", "Subtracts b from a. If a and b are both numbers, normal subtraction will occur. If either a or b is an array, and the other is a non-array, the other value will be subtracted from every value in the array. If a or b is a string, and the other is a number, a and b will both be converted to strings and subtracted. If a and b are strings, the number of times b occurs in a will be pushed. Finally, if both values are arrays, a new array will be created with a length of the smaller array, and ever value in the new array will be the result of subtraction of same-indexed values in a and b", "-", "sub");
+    }, "subtract the second value on the stack from the top value on the stack", "Subtracts b from a. If a and b are both numbers, normal subtraction will occur. If either a or b is an array, and the other is a non-array, the other value will be subtracted from every value in the array. If a or b is a string, and the other is a number, a and b will both be converted to strings and subtracted. If a and b are strings, the number of times b occurs in a will be pushed. Finally, if both values are arrays, a new array will be created with a length of the smaller array, and ever value in the new array will be the result of subtraction of same-indexed values in a and b. This instruction will fail if a and/or b is an array, and a contains a or b, or b contains a or b", "_", "sub");
     Instruction REVERSE = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         CastableValue value = f.getStack().pop();
-        if(value.getAsString().isPresent()) {
+        if (value.getAsString().isPresent()) {
             f.getStack().push(CastableValue.of(PlasmaStringUtil.reverseString(value.getAsString().get())));
         } else {
             f.getStack().push(CastableValue.of(PlasmaListUtil.reverseList(PlasmaListUtil.buildList(value.getValueAs(CastableValue[].class).get())).toArray(new CastableValue[0])));
@@ -242,7 +245,7 @@ public interface Instructions {
     Instruction CONCAT = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(Instructions.concat(f.getStack().pop(), f.getStack().pop()));
-    }, "concatenate the top two values of the stack", "Concatenates a and b. If a and b are both numbers, both strings, or one of each, they will be converted to strings and concatenate using string concatenation. If a or b is an array, and the other is a non array, the non array will be prepended (if a is non-rray) or appended (if b is non array). If both a and b are arrays, list concatenation will be used to join a and b", "concat", "&+");
+    }, "concatenate the top two values of the stack", "Concatenates a and b. If a and b are both numbers, both strings, or one of each, they will be converted to strings and concatenate using string concatenation. If a or b is an array, and the other is a non array, the non array will be prepended (if a is non-rray) or appended (if b is non array). If both a and b are arrays, list concatenation will be used to join a and b. This instruction will fail if a and/or b is an array, and a contains a or b, or b contains a or b", "concat", "&+");
     Instruction PUSH_NEW_LINE_CONCAT = new Instruction(f -> {
         f.getStack().push(CastableValue.of(System.lineSeparator()));
         Instructions.CONCAT.getAction().accept(f);
@@ -302,26 +305,77 @@ public interface Instructions {
         f.getStack().push(CastableValue.of(Instructions.sqrt(decimal)));
 
     }), "compute the square root of the top value on the stack", "Computes the square root of a, and pushes it to the stack. This instruction fails if a is not a number", "sqrt");
-    Instruction SET_CURRENT_ARG = new Instruction(f -> {
-        //Argument setting handled automatically by Program
-    }, Instructions.terminated(), "set the current context arg to ${arg}", "Sets the current program argument to the one specified. This instruction takes one argument, terminated by '}' (see pushterm)", "arg");
+
+    Instruction RAND_DECIMAL = new Instruction(f -> {
+        f.getStack().push(CastableValue.of(new BigDecimal(new Random().nextDouble())));
+    }, "push a random decimal in the range [0, 1)", "Pseudorandomly generates a decimal number in the range [0, 1) and pushes it", "randd");
+    Instruction RAND_INTEGER = new Instruction(f -> {
+        f.getStack().push(CastableValue.of(new BigDecimal(new Random().nextInt())));
+    }, "push a random integer", "Pseudorandomly generates an integer in the range [" + Integer.MIN_VALUE + ", " + Integer.MAX_VALUE + "]", "randi");
+    Instruction RAND_INTEGER_BOUNDED = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
+        CastableValue value = f.getStack().pop();
+        BigDecimal decimal = value.getValueAs(BigDecimal.class).get();
+        try {
+            f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(0, decimal.intValueExact(), new Random()))));
+        } catch (ArithmeticException e) {
+            throw new JAISBaLExecutionException(Program.valueToString(value) + " is not a 32-bit integer bound");
+        }
+    }), "push a random integer in the range [0, <top value of stack>)", "Pseudorandomly generates an integer in the range [0, a) and pushes it. This instruction fails if the top value of the stack is not a 32-bit integer", "randib");
+    Instruction RAND_INTEGER_BOUNDED_1 = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
+        CastableValue value = f.getStack().pop();
+        BigDecimal decimal = value.getValueAs(BigDecimal.class).get();
+        try {
+            f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(1, decimal.intValueExact(), new Random()))));
+        } catch (ArithmeticException e) {
+            throw new JAISBaLExecutionException(Program.valueToString(value) + " is not a 32-bit integer bound");
+        }
+    }), "push a random integer in the range [1, <top value of stack>)", "Pseudorandomly generates an integer in the range [1, a) and pushes it. This instruction fails if the top value of the stack is not a 32-bit integer", "randi1");
+    Instruction RAND_INTEGER_DOUBLE_BOUNDED = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.NUMBER), f -> {
+        CastableValue value = f.getStack().pop();
+        CastableValue value2 = f.getStack().pop();
+
+        BigDecimal decimal = value.getValueAs(BigDecimal.class).get();
+        BigDecimal decimal2 = value2.getValueAs(BigDecimal.class).get();
+        try {
+            f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(Math.min(decimal.intValueExact(), decimal2.intValueExact()), Math.max(decimal.intValueExact(), decimal2.intValueExact()), new Random()))));
+        } catch (ArithmeticException e) {
+            throw new JAISBaLExecutionException(Program.valueToString(value) + " is not a 32-bit integer bound");
+        }
+    }), "push a random integer in the range specified by the top two values of the stack", "Pseudorandomly generates an integer in the range [min(a, b), max(a, b)) and pushes it. This instruction failes if the top two values of the stack are not 32-bit integers", "randidb");
     Instruction FOR_LOOP = new Instruction(f -> {
-        FunctionContext sub = f.subset("for", "end");
+        int end = f.subsetIndex("for", "end");
+        int start = f.getCurrent();
         Program.checkUnderflow(1, f);
         CastableValue indexV = f.getStack().pop();
         Type.NUMBER.checkMatches(indexV);
         BigDecimal bd = BigDecimal.ZERO;
         BigDecimal cond = indexV.getValueAs(BigDecimal.class).get();
         while (bd.compareTo(cond) < 0) {
-            sub.clone().runAsSurrogate(f);
+            f.runSubset(end);
+            f.setCurrent(start);
             bd = bd.add(BigDecimal.ONE);
         }
-        f.setCurrent(f.getCurrent() + sub.getInstructions().size());
+        f.setCurrent(end);
     }, "start for loop", "This instruction pops a number of the stack, and executes the for loop body floor a times. This instruction also opens a new function frame. This instructions is only succesful if the top value on the stack is a number", "for");
     Instruction END = new Instruction(f -> {
     }, "end current language construct", "Ends a loop, if, ifelse, or other statement", "end");
     Instruction BREAK = new Instruction(f -> {
     }, "break out of the current function frame", "Breaks out of the current function frame", "break");
+    Instruction ARRAY_SPLIT = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+        CastableValue[] top = f.getStack().pop().getValueAs(CastableValue[].class).get();
+        for (int i = 0; i < top.length; i++) {
+            f.getStack().push(top[i]);
+        }
+    }), "split the top of the stack into its pieces and push each one", "Takes a and splits it up into its independent values, and pushes each one onto the stack. This instruction fails if a is not an array", "arrsplit");
+    Instruction ARRAY_WRAP = new Instruction(f -> {
+        CastableValue[] array = new CastableValue[f.getStack().size()];
+        int ind = array.length - 1;
+        while (!f.getStack().isEmpty()) {
+            array[ind] = f.getStack().pop();
+            ind--;
+        }
+        f.getStack().push(CastableValue.of(array));
+    }, "take the entire stack and wrap it into an array", "Pops every value of the stack and stores it in an array, in reverse order. This is implemented this way so that subsequent calls to arrsplit and arrwrap do not modify the stack", "arrwrap");
     Instruction ARRAY_CREATE = new Instruction(f -> {
         CastableValue index = f.getCurrentArgEasy();
         Type.NUMBER.checkMatches(index);
@@ -562,49 +616,6 @@ public interface Instructions {
             f.setCurrent(f.getCurrent() + 1);
         }
     }, "skip the next statement if the values on the stack are in greatest to smallest order", "Consecutively pops every value of the stack, checks if it is <= the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, the next instruction is skipped (see compare)", "&<=", "lessequalall");
-    Instruction NEGATE = new Instruction(f -> {
-        Program.checkUnderflow(1, f);
-        if (Instructions.truthy(f.getStack().pop())) {
-            Instructions.PUSH_TRUTHY.getAction().accept(f);
-        } else {
-            Instructions.PUSH_FALSY.getAction().accept(f);
-        }
-    }, "negate the top value of the stack", "Pops the current value of the stack, if the values is truthy, this instruction pushes a falsy value, otherwise this instruction pushes a truthy value (see if)", "!", "negate");
-    Instruction IF_TRUTHY = new Instruction(f -> {
-        Program.checkUnderflow(1, f);
-        CastableValue value = f.getStack().pop();
-        if (Instructions.truthy(value)) {
-            f.setCurrent(f.getCurrent() + 1);
-        }
-    }, "if the top value on the stack is truthy, skip the next statement", "Pops the top value of the stack. If a is truthy, skip the next statement. If a is a number, it is truthy if it is greater than 0. If a is a string, it is truthy if it equals \"true,\" \"t\" or \"yes.\" If a is an array, it is truthy if it contains more truthy values than falsy ones", "if");
-    Instruction IF_FALSY = new Instruction(f -> {
-        Program.checkUnderflow(1, f);
-        CastableValue value = f.getStack().pop();
-        if (!Instructions.truthy(value)) {
-            f.setCurrent(f.getCurrent() + 1);
-        }
-    }, "if the top value on the stack is falsy, skip the next statement", "Pops the top value of the stack. If a is not truthy, skip the next statement (see if)", "!if");
-    Instruction IF_BLOCK = new Instruction(f -> {
-        Program.checkUnderflow(1, f);
-        FunctionContext context = f.subset("ifblock", "end");
-        CastableValue value = f.getStack().pop();
-        if (Instructions.truthy(value)) {
-            context.runAsSurrogate(f);
-        }
-    }, "if the top value of the stack is truthy, execute the next block", "Pops the top value of the stack. If a is truthy, run the block (see if). This instruction also opens a new function frame", "ifblock");
-    Instruction IF_ELSE_BLOCK = new Instruction(f -> {
-        Program.checkUnderflow(1, f);
-        FunctionContext truthy = f.subset("ifelse", "else");
-        f.setCurrent(f.getCurrent() + truthy.getInstructions().size() + 1);
-        FunctionContext falsy = f.subset("else", "end");
-        f.setCurrent(f.getCurrent() + falsy.getInstructions().size());
-        CastableValue value = f.getStack().pop();
-        if (Instructions.truthy(value)) {
-            truthy.runAsSurrogate(f);
-        } else {
-            falsy.runAsSurrogate(f);
-        }
-    }, "if the top value of the stack is truthy, execute the next block, otherwise, execute the else block", "Pops the top value of the stack. If a is truthy, run the  if block, otherwise run the else block (see if). This instruction also opens a new function frame", "ifelse");
     Instruction ELSE = new Instruction(f -> {
     }, "end the truthy section of the ifelse block", "The end of an ifelse's if block, and the beginning of it's else block", "else");
     Instruction SUPER_PUSH = new Instruction(f -> {
@@ -630,7 +641,7 @@ public interface Instructions {
         } catch (ArithmeticException e) {
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index", e);
         }
-    }, Instructions.number(), "jump to instruction ${arg}", "Jumps to the instruction at the given index. This instruction takes one argument, a number (see pushnum). This instruction fails if the argument is not a 32-bit integer", "indexjump");
+    }, Instructions.number(), "jump to instruction ${arg}", "Jumps to the instruction at the given index. This instruction takes one argument, a number (see pushnum). This instruction fails if the argument is not a 32-bit integer", "jumpindex");
     Instruction POP_SPLIT_PUSH = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         CastableValue value = f.getStack().pop();
@@ -660,12 +671,63 @@ public interface Instructions {
         Program.checkUnderflow(1, f);
         f.getStack().push(Instructions.name(f.getStack().pop()));
     }, "take the top value off the stack, determines its name, and push it", "Determines the name of the top value on the stack. If a is a 32-bit integer, a string representation of it's number name is returned, if a is an array, the name of every value in the array is computed, and pushed as a single array. Otherwise, the string value of a is pushed", "name");
+    Instruction NEGATE = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        if (Instructions.truthy(f.getStack().pop())) {
+            Instructions.PUSH_TRUTHY.getAction().accept(f);
+        } else {
+            Instructions.PUSH_FALSY.getAction().accept(f);
+        }
+    }, "negate the top value of the stack", "Pops the current value of the stack, if the values is truthy, this instruction pushes a falsy value, otherwise this instruction pushes a truthy value (see if)", "!", "negate");
+    Instruction IF_TRUTHY = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        CastableValue value = f.getStack().pop();
+        if (Instructions.truthy(value)) {
+            f.setCurrent(f.getCurrent() + 1);
+        }
+    }, "if the top value on the stack is truthy, skip the next statement", "Pops the top value of the stack. If a is truthy, skip the next statement. If a is a number, it is truthy if it is greater than 0. If a is a string, it is truthy if it equals \"true,\" \"t\" or \"yes.\" If a is an array, it is truthy if it contains more truthy values than falsy ones", "if");
+    Instruction IF_FALSY = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        CastableValue value = f.getStack().pop();
+        if (!Instructions.truthy(value)) {
+            f.setCurrent(f.getCurrent() + 1);
+        }
+    }, "if the top value on the stack is falsy, skip the next statement", "Pops the top value of the stack. If a is not truthy, skip the next statement (see if)", "!if");
+    Instruction IF_BLOCK = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        int end = f.subsetIndex("ifblock", "end");
+        CastableValue value = f.getStack().pop();
+        if (Instructions.truthy(value)) {
+            f.runSubset(end);
+        } else {
+            f.setCurrent(end);
+        }
+    }, "if the top value of the stack is truthy, execute the next block", "Pops the top value of the stack. If a is truthy, run the block (see if). This instruction also opens a new function frame", "ifblock");
+    Instruction IF_ELSE_BLOCK = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        int start = f.getCurrent();
+        int truthyEnd = f.subsetIndex("ifelse", "else");
+        f.setCurrent(truthyEnd + 1);
+        int falsyEnd = f.subsetIndex("else", "end");
+        f.setCurrent(start);
+        CastableValue value = f.getStack().pop();
+        if (Instructions.truthy(value)) {
+            f.runSubset(truthyEnd);
+            f.setCurrent(falsyEnd);
+        } else {
+            f.setCurrent(truthyEnd);
+            f.runSubset(falsyEnd);
+            f.setCurrent(falsyEnd);
+        }
+    }, "if the top value of the stack is truthy, execute the next block, otherwise, execute the else block", "Pops the top value of the stack. If a is truthy, run the  if block, otherwise run the else block (see if). This instruction also opens a new function frame", "ifelse");
+
     BigDecimal SQRT_DIG = new BigDecimal(150);
     BigDecimal SQRT_PRE = new BigDecimal(1).divide(new BigDecimal(10).pow(SQRT_DIG.intValue()));
     BigDecimal TWO = new BigDecimal("2");
     List<String> TRUTHY = PlasmaListUtil.buildList("true", "yes", "t");
+
     static CastableValue name(CastableValue value) {
-        if(value.getValueAs(BigDecimal.class).isPresent()) {
+        if (value.getValueAs(BigDecimal.class).isPresent()) {
             try {
                 return CastableValue.of(NumberNames.convert(value.getValueAs(BigDecimal.class).get().intValueExact()));
             } catch (ArithmeticException e) {
@@ -683,6 +745,7 @@ public interface Instructions {
 
         throw new IllegalStateException();
     }
+
     static ConstantInstruction constant(CastableValue value, String name) {
         return new ConstantInstruction(value, "push " + name + " onto the stack", "a constant referring that pushes " + name, name.length() == 1 ? new String[0] : new String[]{name});
     }
@@ -703,14 +766,14 @@ public interface Instructions {
     static Instruction pushOutput(int chars) {
         return new Instruction(f -> {
             f.getStack().push(f.getCurrentArgEasy());
-            System.out.print(Program.valueToString(f.getStack().pop()));
+            JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
         }, Instructions.fixed(chars), "print ${arg}", "Pushes the given argument onto the stack, then pops and prints it. The argument is considered to be the next " + chars + " character(s) after this instruction", "print" + chars);
     }
 
     static Instruction pushOutputNewLine(int chars) {
         return new Instruction(f -> {
             f.getStack().push(f.getCurrentArgEasy());
-            System.out.println(Program.valueToString(f.getStack().pop()));
+            JAISBaL.getOut().println(Program.valueToString(f.getStack().pop()));
         }, Instructions.fixed(chars), "print ${arg} followed by a new line", "Pushes the given argument onto the stack, then pops and prints it, followed by a new line. The argument is considered to be the next " + chars + " character(s) after this instruction", "println" + chars);
     }
 
@@ -984,7 +1047,21 @@ public interface Instructions {
     }
 
     static DangerousFunction<CharacterStream, String> number() {
-        return c -> c.nextWhile((Predicate<String>) PlasmaMathUtil::isBigDecimal);
+        return c -> {
+            boolean neg = c.isNext('-');
+            if (neg) {
+                c.consume('-');
+            }
+            String num = c.nextWhile((Predicate<String>) PlasmaMathUtil::isBigDecimal);
+            if (num.equals("")) {
+                if (neg) {
+                    c.back();
+                }
+                return num;
+            } else {
+                return (neg ? "-" : "") + num;
+            }
+        };
     }
 
     static DangerousFunction<CharacterStream, String> terminated() {

@@ -22,6 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
+import com.gmail.socraticphoenix.jaisbal.JAISBaL;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
@@ -29,6 +30,7 @@ import com.gmail.socraticphoenix.plasma.string.TableFormat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class InstructionRegistry implements Instructions {
     private static List<Instruction> accessibleInstructions;
@@ -41,7 +43,7 @@ public class InstructionRegistry implements Instructions {
     private static List<String> blockStart;
     private static List<String> blockEnd;
 
-    static {
+    public static void registerDefaults() {
         InstructionRegistry.instructions = new ArrayList<>();
         InstructionRegistry.auxiliaryInstructions = new ArrayList<>();
         InstructionRegistry.auxiliaryConstants = new ArrayList<>();
@@ -49,9 +51,10 @@ public class InstructionRegistry implements Instructions {
         InstructionRegistry.constants = new ArrayList<>();
         InstructionRegistry.blockStart = new ArrayList<>();
         InstructionRegistry.blockEnd = new ArrayList<>();
-    }
 
-    public static void registerDefaults() {
+        r(new AuxiliaryConstant());
+        r(new AuxiliaryInstruction());
+
         r(PUSH_NUMBER);
         r(PUSH_TERMINATED);
         for (int i = 1; i <= 6; i++) {
@@ -105,12 +108,16 @@ public class InstructionRegistry implements Instructions {
         r(CEIL);
         r(ROUND);
         r(SQRT);
-        r(SET_CURRENT_ARG);
-        r(new AuxiliaryConstant());
-        r(new AuxiliaryInstruction());
+        r(RAND_DECIMAL);
+        r(RAND_INTEGER);
+        r(RAND_INTEGER_BOUNDED);
+        r(RAND_INTEGER_BOUNDED_1);
+        r(RAND_INTEGER_DOUBLE_BOUNDED);
         r(FOR_LOOP);
         r(END);
         r(BREAK);
+        r(ARRAY_SPLIT);
+        r(ARRAY_WRAP);
         r(ARRAY_CREATE);
         r(ARRAY_LOAD);
         r(ARRAY_STORE);
@@ -157,8 +164,6 @@ public class InstructionRegistry implements Instructions {
 
         InstructionRegistry.getBlockStarts().add("ifblock");
         InstructionRegistry.getBlockStarts().add("ifelse");
-
-        InstructionRegistry.checkNumbers();
     }
 
     public static void ra(Instruction instruction) {
@@ -193,13 +198,61 @@ public class InstructionRegistry implements Instructions {
         InstructionRegistry.registerSupplementaryInstruction(instruction);
     }
 
+    public static void checkIds() throws IllegalStateException {
+        for(Instruction instruction : InstructionRegistry.instructions) {
+            if(instruction.getId() == '\0') {
+                throw new IllegalStateException(instruction.getMainAlias() + " has a null character id (\\0)");
+            } else if (Program.CONTROL_CHARACTERS.indexOf(instruction.getId()) != -1) {
+                throw new IllegalStateException(instruction.getMainAlias() + " has illegal control character id " + PlasmaStringUtil.escape(String.valueOf(instruction.getId())));
+            }
+        }
+
+        for(Instruction instruction : InstructionRegistry.supplementaryInstructions) {
+            if(instruction.getId() == '\0') {
+                throw new IllegalStateException(instruction.getMainAlias() + " has a null character id (\\0)");
+            } else if (Program.CONTROL_CHARACTERS.indexOf(instruction.getId()) != -1) {
+                throw new IllegalStateException(instruction.getMainAlias() + " has illegal control character id " + PlasmaStringUtil.escape(String.valueOf(instruction.getId())));
+            }
+        }
+
+        for(Instruction instruction : InstructionRegistry.constants) {
+            if(instruction.getId() == '\0') {
+                throw new IllegalStateException(instruction.getMainAlias() + " has a null character id (\\0)");
+            } else if (Program.CONTROL_CHARACTERS.indexOf(instruction.getId()) != -1) {
+                throw new IllegalStateException(instruction.getMainAlias() + " has illegal control character id " + PlasmaStringUtil.escape(String.valueOf(instruction.getId())));
+            }
+        }
+
+        for(Instruction instruction : InstructionRegistry.auxiliaryInstructions) {
+            if(instruction.getId() != '\0') {
+                throw new IllegalStateException(instruction.getMainAlias() + " is auxiliary, and does not have a null character id (\\0), instead it has " + PlasmaStringUtil.escape(String.valueOf(instruction.getId())));
+            } else if (Program.CONTROL_CHARACTERS.indexOf(instruction.getId()) != -1) {
+                throw new IllegalStateException(instruction.getMainAlias() + " has illegal control character id " + PlasmaStringUtil.escape(String.valueOf(instruction.getId())));
+            }
+        }
+    }
+
+    public static void checkDuplicates() {
+        List<Instruction> accessible = InstructionRegistry.getAccessibleInstructions();
+        for (int i = 0; i < accessible.size(); i++) {
+            for (int j = 0; j < accessible.size(); j++) {
+                Instruction a = accessible.get(i);
+                Instruction b = accessible.get(j);
+                Optional<String> stringOptional = a.getAliases().stream().filter(b.getAliases()::contains).findFirst();
+                if (i != j && stringOptional.isPresent()) {
+                    throw new IllegalStateException("Duplicate alias \"" + stringOptional.get() + "\" for instructions " + accessible.get(i).getMainAlias() + " and " + accessible.get(j).getMainAlias());
+                }
+            }
+        }
+    }
+
     public static void checkNumbers() throws IllegalStateException {
-        if(InstructionRegistry.instructions.size() > 230) {
-            throw new IllegalStateException("More than 230 standard instructions are defined");
-        } else if (InstructionRegistry.supplementaryInstructions.size() > 1024) {
-            throw new IllegalStateException("More than 1024 supplementary instructions are defined");
-        } else if (InstructionRegistry.constants.size() > 512) {
-            throw new IllegalStateException("More than 512 standard constants are defined");
+        if(InstructionRegistry.instructions.size() > 204) {
+            throw new IllegalStateException("More than 204 standard instructions are defined");
+        } else if (InstructionRegistry.supplementaryInstructions.size() > JAISBaL.getSupplementaryPages().size() * 256) {
+            throw new IllegalStateException("More than" + JAISBaL.getSupplementaryPages().size() * 256 + "supplementary instructions are defined");
+        } else if (InstructionRegistry.constants.size() > JAISBaL.getConstantPages().size() * 256) {
+            throw new IllegalStateException("More than" + JAISBaL.getConstantPages().size() * 256 + "standard constants are defined");
         }
     }
 

@@ -25,7 +25,7 @@ package com.gmail.socraticphoenix.jaisbal.program;
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
 import com.gmail.socraticphoenix.jaisbal.program.function.Function;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.file.PlasmaFileUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
@@ -62,12 +62,12 @@ public class Program extends PlasmaObject {
      * s            String type
      * n            Number type
      * a            Array type
-     * 0123456789.  Digits/Number parts
+     * -0123456789. Digits/Number parts
      * #            Must be first character of file. Enables verbose parsing. Also used in comments
      * }            Value terminator
      * ,            Function separator
      */
-    public static final String CONTROL_CHARACTERS = ":()[]\\?snai0123456789.#}, \r\t\n";
+    public static final String CONTROL_CHARACTERS = ":()[]\\?snai-0123456789.#}, \r\t\n";
     public static final String COMMENT_START = "\\#";
     public static final String COMMENT_END = "#\\";
     public static final char[] IGNORE_VERBOSE = {'\r', '\t'};
@@ -113,23 +113,31 @@ public class Program extends PlasmaObject {
             if (context.isImplicitInput()) {
                 while (context.getStack().size() < needed) {
                     Type type = Type.WILDCARD;
-                    System.out.print("Enter a " + type.getName() + " > ");
-                    String entered = JAISBaL.getInScanner().nextLine().trim();
+                    JAISBaL.getOut().print("Enter a " + type.getName() + " > ");
+                    String entered = JAISBaL.getIn().get();
                     try {
                         CastableValue value = Type.easyReadValues(new CharacterStream(entered), context.getProgram());
                         if (type.matches(value)) {
                             context.getStack().push(value);
                         } else {
-                            System.out.println("Invalid value: " + Program.valueToString(value) + " cannot be converted to " + type.getName());
+                            JAISBaL.getOut().println("Invalid value: " + Program.valueToString(value) + " cannot be converted to " + type.getName());
                         }
                     } catch (StringParseException e) {
-                        System.out.println("Invalid value:");
-                        e.printStackTrace(System.out);
+                        JAISBaL.getOut().println("Invalid value:");
+                        e.printStackTrace(JAISBaL.getOut());
                     }
                 }
             } else {
                 throw new JAISBaLExecutionException("Stack underflow: required at least " + needed + " parameter(s), but only " + context.getStack().size() + " were/was available on the stack");
             }
+        }
+    }
+
+    public void verify() throws JAISBaLExecutionException {
+        this.main.verify();
+
+        for(Function f : this.functions.values()) {
+            f.verify();
         }
     }
 
@@ -230,6 +238,7 @@ public class Program extends PlasmaObject {
         s2.consumeAll(Program.IGNORE);
         Program p = new Program(Function.parse("main:" + (Type.hasTypeNext(s2) ? "" : "i") + main.toString(), verbose), functions, program, verbose);
         p.parse();
+        p.verify();
         return p;
     }
 

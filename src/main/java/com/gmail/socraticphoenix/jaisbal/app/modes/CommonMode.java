@@ -20,13 +20,14 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.modes;
+package com.gmail.socraticphoenix.jaisbal.app.modes;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
+import com.gmail.socraticphoenix.jaisbal.app.util.LoopedSupplier;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.Stopwatch;
 import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
@@ -39,6 +40,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public interface CommonMode {
 
@@ -47,7 +49,7 @@ public interface CommonMode {
         CharsetEncoder encoder = charset.newEncoder();
         for (char c : in.toCharArray()) {
             if (!encoder.canEncode(c)) {
-                System.out.println("The " + charset.displayName() + " Charset does not support '" + PlasmaStringUtil.escape(String.valueOf(c)) + "'");
+                JAISBaL.getOut().println("The " + charset.displayName() + " Charset does not support '" + PlasmaStringUtil.escape(String.valueOf(c)) + "'");
                 return;
             }
         }
@@ -58,6 +60,7 @@ public interface CommonMode {
     }
 
     static void commonExec(String content, Map<String, String> args) throws JAISBaLExecutionException, IOException {
+        Supplier<String> prev = JAISBaL.getIn();
         String execRunsS = args.get("exec-number");
         if (PlasmaMathUtil.isInteger(execRunsS)) {
             int execRuns = Integer.parseInt(execRunsS);
@@ -74,8 +77,8 @@ public interface CommonMode {
                             try {
                                 TimeUnit.MILLISECONDS.sleep(millis);
                                 context.terminate();
-                                System.out.println();
-                                System.out.println("Script took more than " + Stopwatch.toTimeString(millis, false) + " to complete. Terminated it.");
+                                JAISBaL.getOut().println();
+                                JAISBaL.getOut().println("Script took more than " + Stopwatch.toTimeString(millis, false) + " to complete. Terminated it.");
                                 System.exit(0);
                             } catch (Throwable ignore) {
 
@@ -86,28 +89,42 @@ public interface CommonMode {
                     thread.setDaemon(true);
                     thread.start();
                     for (int z = 0; z < execRuns; z++) {
-                        System.out.println("Run #" + (z + 1) + ":");
+                        JAISBaL.getOut().println("Run #" + (z + 1) + ":");
+                        if(args.containsKey("input" + z)) {
+                            LoopedSupplier supplier = new LoopedSupplier();
+                            JAISBaL.parseInput(args.get("input" + z)).forEach(supplier::add);
+                            JAISBaL.setIn(supplier);
+                        } else {
+                            JAISBaL.setIn(prev);
+                        }
                         context.clone().runAsMain();
-                        System.out.println(PlasmaStringUtil.indent(60, "-"));
-                        System.out.println();
+                        JAISBaL.getOut().println(PlasmaStringUtil.indent(60, "-"));
+                        JAISBaL.getOut().println();
                     }
                     JAISBaL.collectAndPrintInfo(program);
                 } else {
-                    System.out.println("\"" + timeS + "\" is not a number");
+                    JAISBaL.getOut().println("\"" + timeS + "\" is not a number");
                 }
             } else {
                 Program program = Program.parse(content);
                 FunctionContext context = program.getMain().createContext();
                 for (int z = 0; z < execRuns; z++) {
-                    System.out.println("Run #" + (z + 1) + ":");
+                    JAISBaL.getOut().println("Run #" + (z + 1) + ":");
+                    if(args.containsKey("input" + z)) {
+                        LoopedSupplier supplier = new LoopedSupplier();
+                        JAISBaL.parseInput(args.get("input" + z)).forEach(supplier::add);
+                        JAISBaL.setIn(supplier);
+                    } else {
+                        JAISBaL.setIn(prev);
+                    }
                     context.clone().runAsMain();
-                    System.out.println(PlasmaStringUtil.indent(60, "-"));
-                    System.out.println();
+                    JAISBaL.getOut().println(PlasmaStringUtil.indent(60, "-"));
+                    JAISBaL.getOut().println();
                 }
                 JAISBaL.collectAndPrintInfo(program);
             }
         } else {
-            System.out.println("\"" + execRunsS + "\" is not a number");
+            JAISBaL.getOut().println("\"" + execRunsS + "\" is not a number");
         }
     }
 

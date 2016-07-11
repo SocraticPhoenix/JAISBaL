@@ -20,31 +20,14 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.util;
+package com.gmail.socraticphoenix.jaisbal.app.modes;
 
-import com.gmail.socraticphoenix.jaisbal.program.function.Function;
-import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
+import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousFunction;
 
-import java.io.IOException;
+public interface Actions {
 
-public interface DangerousConsumer<T> {
-
-    void accept(T t) throws JAISBaLExecutionException, IOException;
-
-    default DangerousConsumer<T> andThen(DangerousConsumer<? super T> after) {
-        return (T t) -> { accept(t); after.accept(t); };
-    }
-
-    static DangerousConsumer<FunctionContext> of(Function f) {
-        return context -> {
-            f.createContext().run(context.getStack());
-        };
-    }
-
-    static DangerousConsumer<FunctionContext> of(FunctionContext f) {
-        return context -> {
-            f.run(context.getStack());
-        };
-    }
+    DangerousFunction<String, String> MINIFY = s -> Program.parse(s).minify();
+    DangerousFunction<String, String> EXPLAIN = s -> Program.parse(s).explain();
 
 }

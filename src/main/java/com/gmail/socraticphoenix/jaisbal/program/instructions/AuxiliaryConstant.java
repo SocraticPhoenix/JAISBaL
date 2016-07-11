@@ -24,7 +24,7 @@ package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 
 import java.math.BigDecimal;

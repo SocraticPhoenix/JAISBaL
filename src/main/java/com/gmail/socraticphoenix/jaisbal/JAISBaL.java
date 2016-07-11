@@ -22,24 +22,25 @@
  */
 package com.gmail.socraticphoenix.jaisbal;
 
+import com.gmail.socraticphoenix.jaisbal.app.gui.ErrorScreen;
+import com.gmail.socraticphoenix.jaisbal.app.modes.FileMode;
+import com.gmail.socraticphoenix.jaisbal.app.modes.GuiMode;
+import com.gmail.socraticphoenix.jaisbal.app.modes.InputMode;
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.app.util.StringNumberCaster;
+import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharPage;
+import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
-import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharPage;
-import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
-import com.gmail.socraticphoenix.jaisbal.modes.FileMode;
-import com.gmail.socraticphoenix.jaisbal.modes.GuiMode;
-import com.gmail.socraticphoenix.jaisbal.modes.InputMode;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
-import com.gmail.socraticphoenix.jaisbal.util.JAISBaLExecutionException;
-import com.gmail.socraticphoenix.jaisbal.util.StringNumberCaster;
-import com.gmail.socraticphoenix.plasma.file.jlsc.JLSCArray;
 import com.gmail.socraticphoenix.plasma.file.jlsc.JLSCException;
-import com.gmail.socraticphoenix.plasma.file.jlsc.JLSConfiguration;
-import com.gmail.socraticphoenix.plasma.file.jlsc.io.JLSCReader;
-import com.gmail.socraticphoenix.plasma.file.stream.WritableInputStream;
 import com.gmail.socraticphoenix.plasma.reflection.util.PlasmaReflectionUtil;
+import com.gmail.socraticphoenix.plasma.string.BracketCounter;
+import com.gmail.socraticphoenix.plasma.string.CharacterStream;
+import com.gmail.socraticphoenix.plasma.string.Escaper;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
+import com.gmail.socraticphoenix.plasma.string.QuotationTracker;
 
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
@@ -52,109 +53,119 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class JAISBaL {
-    private static Scanner inScanner;
-
     private static JAISBaLCharPage rootPage;
     private static List<JAISBaLCharPage> supplementaryPages;
     private static List<JAISBaLCharPage> constantPages;
 
-    public static void main(String[] a) throws IOException, JAISBaLExecutionException {
-        JAISBaL.generalInit();
-        Map<String, String> args = new HashMap<>();
-        args.put("immediate-quit", "false");
-        for (String s : a) {
-            String[] pieces = s.split("(:|=)", 2);
-            if (pieces.length != 2) {
-                System.out.println("Unrecognized argument \"" + s + "\" no = or : name separator was found.");
-                args.put("immediate-quit", "true");
-                break;
-            } else {
-                args.put(pieces[0], pieces[1]);
-            }
-        }
+    private static PrintStream out;
+    private static Supplier<String> in;
 
-        if (!args.get("immediate-quit").equals("true")) {
-            if (args.containsKey("dev")) {
-                String action = args.get("dev");
-                switch (action) {
-                    case "spec": {
-                        JAISBaL.charsetInit();
-                        JAISBaL.generateSpecFile();
-                        break;
-                    }
-                    case "pages": {
-                        JAISBaL.generateCodePages();
-                        break;
-                    }
-                    default:
-                        System.out.println("Unknown dev action \"" + action + "\"");
-                }
-            } else {
+    public static Supplier<String> getIn() {
+        return in;
+    }
+
+    public static void setIn(Supplier<String> in) {
+        JAISBaL.in = in;
+    }
+
+    public static PrintStream getOut() {
+        return out;
+    }
+
+    public static void setOut(PrintStream out) {
+        JAISBaL.out = out;
+    }
+
+    public static void main(String[] a) throws IOException, JAISBaLExecutionException, JLSCException {
+        boolean gui = false;
+        try {
+
+            JAISBaL.out = System.out;
+            JAISBaL.generalInit();
+            if (a.length == 0) {
                 JAISBaL.charsetInit();
-                Map<String, String> defaults = JAISBaL.getDefaultArgs();
-                defaults.entrySet().stream().filter(e -> !args.containsKey(e.getKey())).forEach(e -> args.put(e.getKey(), e.getValue()));
-                Map<String, DangerousConsumer<Map<String, String>>> modes = JAISBaL.modes();
-
-                if (args.containsKey("input")) {
-                    Program.displayPrompts = false;
-                    WritableInputStream stream = new WritableInputStream();
-                    System.setIn(stream);
-                    try {
-                        JLSCArray input = JLSCReader.readArray(args.get("input"));
-                        input.forEach(value -> stream.write(String.valueOf(value.getValue().orElse(null)) + System.lineSeparator()));
-                    } catch (JLSCException e) {
-                        throw new JAISBaLExecutionException("Unable to read input \"" + args.get("input") + "\"", e);
+                gui = true;
+                modes().get("gui").accept(getDefaultArgs());
+            } else {
+                Map<String, String> args = new HashMap<>();
+                args.put("immediate-quit", "false");
+                for (String s : a) {
+                    String[] pieces = s.split("(:|=)", 2);
+                    if (pieces.length != 2) {
+                        JAISBaL.getOut().println("Unrecognized argument \"" + s + "\" no = or : name separator was found.");
+                        args.put("immediate-quit", "true");
+                        break;
+                    } else {
+                        args.put(pieces[0], pieces[1]);
                     }
-                } else if (args.containsKey("input-file")) {
-                    Program.displayPrompts = false;
-                    File input = new File(args.get("input-file"));
-                    if (input.exists()) {
-                        try {
-                            WritableInputStream stream = new WritableInputStream();
-                            System.setIn(stream);
-                            JLSConfiguration conf = JLSConfiguration.fromFile(input);
-                            JLSCArray array = conf.getOrSetArray("input");
-                            array.forEach(value -> {
-                                if (value.getAsArray().isPresent()) {
-                                    value.getAsArray().get().forEach(val -> stream.write(String.valueOf(val.getValue().orElse(null)) + System.lineSeparator()));
-                                } else {
-                                    stream.write(String.valueOf(value.getValue().orElse(null)));
-                                }
-                            });
-                        } catch (JLSCException e) {
-                            throw new JAISBaLExecutionException("Unable to read input file \"" + input.getAbsolutePath() + "\"", e);
+                }
+
+                if (!args.get("immediate-quit").equals("true")) {
+                    if (args.containsKey("dev")) {
+                        String action = args.get("dev");
+                        switch (action) {
+                            case "seq": {
+                                JAISBaL.generateInstructionsSequence("Monospaced.plain");
+                                break;
+                            }
+                            case "spec": {
+                                JAISBaL.charsetInit();
+                                JAISBaL.generateSpecFile();
+                                break;
+                            }
+                            case "pages": {
+                                JAISBaL.generateCodePages();
+                                break;
+                            }
+                            default:
+                                JAISBaL.getOut().println("Unknown dev action \"" + action + "\"");
                         }
                     } else {
-                        System.out.println("Couldn't find file \"" + input.getAbsolutePath() + "\"");
-                        return;
+                        JAISBaL.charsetInit();
+                        Map<String, String> defaults = JAISBaL.getDefaultArgs();
+                        defaults.entrySet().stream().filter(e -> !args.containsKey(e.getKey())).forEach(e -> args.put(e.getKey(), e.getValue()));
+                        Map<String, DangerousConsumer<Map<String, String>>> modes = JAISBaL.modes();
+
+                        gui = "gui".equals(args.get("mode"));
+
+                        String mode = args.get("mode");
+                        if (modes.containsKey(mode)) {
+                            modes.get(mode).accept(args);
+                        } else {
+                            JAISBaL.getOut().println("Unknown mode \"" + mode + "\"");
+                        }
                     }
                 }
-
-                JAISBaL.createInScanner();
-                String mode = args.get("mode");
-                if (modes.containsKey(mode)) {
-                    modes.get(mode).accept(args);
-                } else {
-                    System.out.println("Unknown mode \"" + mode + "\"");
-                }
+            }
+        } catch (Throwable e) {
+            if (gui) {
+                new ErrorScreen("An error occurred that was uncaught by handlers", e).make().setVisible(true);
+            }
+            e.printStackTrace(JAISBaL.getOut());
+            if(JAISBaL.getOut() != System.out) {
+                e.printStackTrace(System.out);
             }
         }
     }
 
     public static void generateSpecFile() throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter("generated-spec.txt"));
+        BufferedWriter writer = new BufferedWriter(new FileWriter("INSTRUCTIONS.md"));
+        writer.write("#JAISBaL Instruction Reference");
+        writer.newLine();
         writer.write("For the sake of convenience, a is used to refer to the top value of the stack, b is used to refer to the second value on the stack, c is used to refer to the third value on the stack, and so on.");
+        writer.newLine();
         writer.newLine();
         writer.write("Standard Instructions, ");
         writer.write(InstructionRegistry.getStandardInstructions().size() + " defined");
@@ -199,18 +210,18 @@ public class JAISBaL {
     public static void collectAndPrintInfo(Program program) throws JAISBaLExecutionException {
         String source = program.getContent();
         if (JAISBaLCharset.getCharset().newEncoder().canEncode(source)) {
-            System.out.println("JAISBaL bytes: " + source.getBytes(JAISBaLCharset.getCharset()).length);
-            System.out.println("UTF-8 bytes: " + source.getBytes(StandardCharsets.UTF_8).length);
+            JAISBaL.getOut().println("JAISBaL bytes: " + source.getBytes(JAISBaLCharset.getCharset()).length);
+            JAISBaL.getOut().println("UTF-8 bytes: " + source.getBytes(StandardCharsets.UTF_8).length);
         } else {
             char bad = '\0';
-            for(char c : source.toCharArray()) {
-                if(!JAISBaLCharset.getCharset().newEncoder().canEncode(c)) {
+            for (char c : source.toCharArray()) {
+                if (!JAISBaLCharset.getCharset().newEncoder().canEncode(c)) {
                     bad = c;
                     break;
                 }
             }
-            System.out.println("JAISBaL bytes: error: unsupported character '" + PlasmaStringUtil.escape(String.valueOf(bad)) + "'");
-            System.out.println("UTF-8 bytes: " + source.getBytes(StandardCharsets.UTF_8).length);
+            JAISBaL.getOut().println("JAISBaL bytes: error: unsupported character '" + PlasmaStringUtil.escape(String.valueOf(bad)) + "'");
+            JAISBaL.getOut().println("UTF-8 bytes: " + source.getBytes(StandardCharsets.UTF_8).length);
         }
     }
 
@@ -228,8 +239,8 @@ public class JAISBaL {
     public static List<JAISBaLCharPage> getAllPages() {
         List<JAISBaLCharPage> list = new ArrayList<>();
         list.add(JAISBaL.getRootPage());
-        list.addAll(JAISBaL.getSupplementaryPages());
         list.addAll(JAISBaL.getConstantPages());
+        list.addAll(JAISBaL.getSupplementaryPages());
         return list;
     }
 
@@ -251,17 +262,25 @@ public class JAISBaL {
     }
 
     private static void charsetInit() throws IOException {
-        JAISBaL.rootPage = JAISBaLCharPage.of("S", 250);
+        JAISBaL.rootPage = JAISBaLCharPage.of("S", 241);
         JAISBaL.supplementaryPages = new ArrayList<>();
         JAISBaL.constantPages = new ArrayList<>();
         JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("A", 256));
         JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("B", 256));
         JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("C", 256));
         JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("D", 256));
-        JAISBaL.constantPages.add(JAISBaLCharPage.of("E", 256));
-        JAISBaL.constantPages.add(JAISBaLCharPage.of("F", 256));
-
+        JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("E", 256));
+        JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("F", 256));
+        JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("G", 256));
+        JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("H", 256));
+        JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("I", 256));
+        JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("J", 256));
+        JAISBaL.supplementaryPages.add(JAISBaLCharPage.of("K", 256));
+        JAISBaL.constantPages.add(JAISBaLCharPage.of("L", 256));
+        JAISBaL.constantPages.add(JAISBaLCharPage.of("M", 256));
         JAISBaLCharset.init();
+
+        InstructionRegistry.checkNumbers();
 
         char[] root = JAISBaL.rootPage.getMappings();
         int id = 0;
@@ -285,28 +304,11 @@ public class JAISBaL {
             instruction.assignId(sup.get(p).getMappings()[id]);
         }
 
-        JAISBaL.checkDuplicates();
+        InstructionRegistry.checkDuplicates();
+        InstructionRegistry.checkIds();
     }
 
-    public static void createInScanner() {
-        if (JAISBaL.inScanner == null) {
-            JAISBaL.inScanner = new Scanner(System.in);
-        }
-    }
 
-    private static void checkDuplicates() {
-        List<Instruction> accessible = InstructionRegistry.getAccessibleInstructions();
-        for (int i = 0; i < accessible.size(); i++) {
-            for (int j = 0; j < accessible.size(); j++) {
-                Instruction a = accessible.get(i);
-                Instruction b = accessible.get(j);
-                Optional<String> stringOptional = a.getAliases().stream().filter(b.getAliases()::contains).findFirst();
-                if (i != j && stringOptional.isPresent()) {
-                    throw new IllegalStateException("Duplicate alias \"" + stringOptional.get() + "\" for instructions " + accessible.get(i).getMainAlias() + " and " + accessible.get(j).getMainAlias());
-                }
-            }
-        }
-    }
 
     private static boolean isAllowable(char c) {
         return Program.CONTROL_CHARACTERS.indexOf(c) == -1 && !InstructionRegistry.getAccessibleInstructions().stream().filter(z -> z.getId() == c).findFirst().isPresent();
@@ -314,11 +316,11 @@ public class JAISBaL {
 
     public static void generateCodePages() throws IOException {
         JAISBaL.generateInstructionsSequence("Monospaced.plain");
-        BufferedReader reader = new BufferedReader(new FileReader(new File("instructions.txt")));
-        String names = "SABCDEF";
-        for (int i = 0; i < 7; i++) {
+        BufferedReader reader = new BufferedReader(new FileReader(new File("generated-instructions.txt")));
+        String names = "SABCDEFGHIJKLMNOPQRSTUV";
+        for (int i = 0; i < 13; i++) {
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("src/main/resources/page-" + names.charAt(i) + ".txt")), StandardCharsets.UTF_8));
-            int z = i != 0 ? 255 : 249;
+            int z = i != 0 ? 255 : 240;
             for (int j = 0; j <= z; j++) {
                 int g = reader.read();
                 writer.write(g);
@@ -331,7 +333,7 @@ public class JAISBaL {
         GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Font[] fonts = e.getAllFonts();
         for (Font f : fonts) {
-            System.out.println(f.getName());
+            JAISBaL.getOut().println(f.getName());
         }
     }
 
@@ -344,7 +346,7 @@ public class JAISBaL {
             builder.append(c);
         }
         if (size > 40) {
-            throw new IllegalStateException("Greater than 20 language characters are defined");
+            throw new IllegalStateException("Greater than 40 language characters are defined");
         }
         for (int i = 0; i < 40 - size; i++) {
             builder.append("?");
@@ -363,22 +365,97 @@ public class JAISBaL {
 
         for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++) {
             String current = builder.toString();
-            if (StandardCharsets.ISO_8859_1.newEncoder().canEncode((char) i) && !Character.isISOControl(i) && !Character.isWhitespace(i) && current.indexOf(i) == -1 && font.canDisplay(i) && (Character.getDirectionality(i) == Character.DIRECTIONALITY_LEFT_TO_RIGHT || Character.getDirectionality(i) == Character.DIRECTIONALITY_OTHER_NEUTRALS)) {
+            if (StandardCharsets.ISO_8859_1.newEncoder().canEncode((char) i) && !Character.isISOControl(i) && !Character.isWhitespace(i) && current.indexOf(i) == -1 && font.canDisplay(i) && (Character.getDirectionality(i) == Character.DIRECTIONALITY_LEFT_TO_RIGHT || Character.getDirectionality(i) == Character.DIRECTIONALITY_OTHER_NEUTRALS) && Normalizer.normalize(new String(new char[]{(char) i}), Normalizer.Form.NFD).length() == 1 && font.canDisplay(i)) {
                 builder.append((char) i);
             }
         }
 
 
-        for (int i = Character.MAX_VALUE; i >= Character.MIN_VALUE; i--) {
+        for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++) {
             String current = builder.toString();
-            if (!Character.isISOControl(i) && !Character.isWhitespace(i) && current.indexOf(i) == -1 && Character.getDirectionality(i) == Character.DIRECTIONALITY_LEFT_TO_RIGHT && font.canDisplay(i) && !Character.isIdeographic(i)) {
+            if (!Character.isISOControl(i) && !Character.isWhitespace(i) && current.indexOf(i) == -1 && (Character.getDirectionality(i) == Character.DIRECTIONALITY_LEFT_TO_RIGHT || Character.getDirectionality(i) == Character.DIRECTIONALITY_OTHER_NEUTRALS) && (Character.getType(i) == Character.OTHER_SYMBOL || Character.getType(i) == Character.MATH_SYMBOL || Character.getType(i) == Character.CURRENCY_SYMBOL || Character.getType(i) == Character.MODIFIER_SYMBOL) && font.canDisplay(i) && !Character.isIdeographic(i) && !Character.isAlphabetic(i) && Normalizer.normalize(new String(new char[]{(char) i}), Normalizer.Form.NFD).length() == 1) {
                 builder.append((char) i);
             }
         }
 
-        OutputStream stream = new FileOutputStream("instructions.txt");
+        for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++) {
+            String current = builder.toString();
+            if (!Character.isISOControl(i) && !Character.isWhitespace(i) && current.indexOf(i) == -1 && (Character.getDirectionality(i) == Character.DIRECTIONALITY_LEFT_TO_RIGHT || Character.getDirectionality(i) == Character.DIRECTIONALITY_OTHER_NEUTRALS) && font.canDisplay(i) && !Character.isIdeographic(i) && Normalizer.normalize(new String(new char[]{(char) i}), Normalizer.Form.NFD).length() == 1) {
+                builder.append((char) i);
+            }
+        }
+
+        OutputStream stream = new FileOutputStream("generated-instructions.txt");
         stream.write(builder.toString().getBytes(StandardCharsets.UTF_8));
         stream.close();
+    }
+
+    public static List<String> parseInput(String s) {
+        CharacterStream stream = new CharacterStream(s);
+        List<String> list = new ArrayList<>();
+        Escaper escaper = Program.ESCAPER;
+        BracketCounter counter = new BracketCounter();
+        counter.registerBrackets('[', ']');
+        while (stream.hasNext()) {
+            list.add(stream.nextUntil(c -> c == ',', counter, new QuotationTracker(), escaper, false));
+            stream.consume(',');
+        }
+        return list.stream().map(JAISBaL::simplisticClean).collect(Collectors.toList());
+    }
+
+    public static String simplisticClean(String s) {
+        CharacterStream stream = new CharacterStream(s);
+        StringBuilder builder = new StringBuilder();
+        BracketCounter counter = new BracketCounter();
+        counter.registerBrackets('[', ']');
+        while (stream.hasNext()) {
+            String z = stream.nextUntil(Program.ESCAPER.getEscapeChar(), counter);
+            builder.append(z);
+            if (stream.isNext(Program.ESCAPER.getEscapeChar())) {
+                char c = stream.next().get();
+                if (stream.isNext(',')) {
+                    builder.append(stream.next().get());
+                } else {
+                    builder.append(c).append(stream.hasNext() ? stream.next().get() : "");
+                }
+            }
+        }
+        return builder.toString();
+    }
+
+    public static String makeInput(String... s) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < s.length; i++) {
+            String sub = s[i];
+            int b = 0;
+            boolean escape = false;
+            for (char c : sub.toCharArray()) {
+                boolean local = escape;
+                if (c == '\\' && !escape) {
+                    escape = true;
+                } else if (c == '[' && !escape) {
+                    b++;
+                    builder.append("[");
+                } else if (c == ']' && !escape) {
+                    b--;
+                    builder.append("]");
+                } else if (c == ',' && b == 0 && !escape) {
+                    builder.append("\\,");
+                } else if (c == '"' && !escape) {
+                    builder.append("\\\"");
+                } else {
+                    builder.append(c);
+                }
+                if (local) {
+                    escape = false;
+                }
+            }
+
+            if (i < s.length - 1) {
+                builder.append(",");
+            }
+        }
+        return builder.toString();
     }
 
     public static String read(File file) throws IOException {
@@ -391,7 +468,4 @@ public class JAISBaL {
         return PlasmaStringUtil.cutLastChar(contents.toString());
     }
 
-    public static Scanner getInScanner() {
-        return JAISBaL.inScanner;
-    }
 }

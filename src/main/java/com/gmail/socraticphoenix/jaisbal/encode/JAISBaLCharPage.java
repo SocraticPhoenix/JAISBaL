@@ -35,13 +35,21 @@ public class JAISBaLCharPage {
     private static Map<String, Integer> namings;
 
     static {
-        namings = new HashMap<>();
-        namings.put("A", 250);
-        namings.put("B", 251);
-        namings.put("C", 252);
-        namings.put("D", 253);
-        namings.put("E", 254);
-        namings.put("F", 255);
+        namings = new HashMap<String, Integer>(){{
+            put("A", 243);
+            put("B", 244);
+            put("C", 245);
+            put("D", 246);
+            put("E", 247);
+            put("F", 248);
+            put("G", 249);
+            put("H", 250);
+            put("I", 251);
+            put("J", 252);
+            put("K", 253);
+            put("L", 254);
+            put("M", 245);
+        }};
     }
 
     private char[] mappings;

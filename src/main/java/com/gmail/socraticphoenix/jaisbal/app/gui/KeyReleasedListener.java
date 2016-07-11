@@ -20,10 +20,21 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.util;
+package com.gmail.socraticphoenix.jaisbal.app.gui;
 
-public interface DangerousFunction<T, R> {
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
-    R apply(T t) throws JAISBaLExecutionException;
+@FunctionalInterface
+public interface KeyReleasedListener extends KeyListener {
 
+    @Override
+    default void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    default void keyPressed(KeyEvent e) {
+
+    }
 }
