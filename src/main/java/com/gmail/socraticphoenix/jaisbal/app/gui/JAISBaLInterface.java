@@ -193,7 +193,6 @@ public class JAISBaLInterface {
                                 FunctionContext context = program.getMain().createContext();
                                 reference.set(context);
                                 context.runAsMain();
-                                running.set(false);
                             } catch (JAISBaLExecutionException | IOException | StringParseException e1) {
                                 JAISBaL.getOut().println("Execution failed");
                                 JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
@@ -202,6 +201,7 @@ public class JAISBaLInterface {
                                     JAISBaL.getOut().println("Caused by: " + e1.getClass().getName() + ": " + cause.getMessage());
                                 }
                             }
+                            running.set(false);
                         }
 
                     }.start();

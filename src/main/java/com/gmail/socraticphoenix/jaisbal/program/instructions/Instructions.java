@@ -54,7 +54,7 @@ public interface Instructions {
     Instruction PUSH_TERMINATED = new Instruction(f -> f.getStack().push(f.getCurrentArgEasy()), Instructions.terminated(), "push ${arg} onto the stack", "Pushes any value onto the stack. This instruction takes one argument, and continues reading the argument until the '}' terminating character is found. '}' can be escaped or nested in [] to allow it to be used in the value itself", "pushterm");
     Instruction PUSH_NUMBER_OUTPUT = new Instruction(f -> {
         f.getStack().push(f.getCurrentArgEasy());
-        JAISBaL.getOut().print(f.getStack().pop());
+        JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
     }, Instructions.number(), "print ${arg}", "Pushes a number onto the stack (see pushnum), and then pops and prints the number", "printnum");
     Instruction PUSH_TERMINATED_OUTPUT = new Instruction(f -> {
         f.getStack().push(f.getCurrentArgEasy());
@@ -62,7 +62,7 @@ public interface Instructions {
     }, Instructions.terminated(), "print ${arg}", "Pushes any value onto the stack (see pushterm), and then pops and prints the value", "printterm");
     Instruction PUSH_NUMBER_OUTPUT_NEWLINE = new Instruction(f -> {
         f.getStack().push(f.getCurrentArgEasy());
-        JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
+        JAISBaL.getOut().println(Program.valueToString(f.getStack().pop()));
     }, Instructions.number(), "print ${arg}", "Pushes a number onto the stack (see pushnum), and then pops and prints the number, followed by a newline", "printnumln");
     Instruction PUSH_TERMINATED_OUTPUT_NEWLINE = new Instruction(f -> {
         f.getStack().push(f.getCurrentArgEasy());
@@ -627,7 +627,7 @@ public interface Instructions {
         Type.NUMBER.checkMatches(indexV);
         BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
         try {
-            f.setCurrent(f.getCurrent() + index.intValueExact());
+            f.setCurrent(f.getCurrent() + index.intValueExact() - 1);
         } catch (ArithmeticException e) {
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index", e);
         }
