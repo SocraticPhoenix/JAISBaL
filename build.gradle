@@ -23,7 +23,7 @@ apply plugin : 'net.sf.gapt'
 //End Plugins
 
 //Program Specific Variables (Fill these in)
-def programVersion = "0.0.3"
+def programVersion = "0.0.5"
 def programGroup = "com.gmail.socraticphoenix"
 def programName = "JAISBaL"
 def repoName = "Main"
@@ -55,7 +55,7 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: "lib", include: "*.jar")
+    shadow fileTree(dir: "lib", include: "*.jar")
     //shadow "com.gmail.socraticphoenix:PlasmaAPI:2.1.1"
     shadow "com.intellij:forms_rt:7.0.3"
 }

@@ -519,7 +519,7 @@ public interface Instructions {
         if (check) {
             f.setCurrent(f.getCurrent() + 1);
         }
-    }, "skip the next statement if no values on the stack are equal", "Consecutively pops every value of the stack, checks if it is not equal to the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, the next instruction is skipped (see compare)", "&!=", "notequalall");
+    }, "skip the next statement if any values on the stack are not equal", "Consecutively pops every value of the stack, checks if it is not equal to the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, the next instruction is skipped (see compare)", "&!=", "notequalall");
     Instruction GREATER = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         if (!(Instructions.compare(f.getStack().pop(), f.getStack().pop()) > 0)) {
