@@ -195,7 +195,7 @@ public interface Instructions {
     }, "pop off every value in the stack and print it", "Pops every value off the stack, and prints each one", "popoutall");
     Instruction POP_OUTPUT_ALL_NEWLINE = new Instruction(f -> {
         while (!f.getStack().isEmpty()) {
-            JAISBaL.getOut().print(Program.valueToString(f.getStack().pop()));
+            JAISBaL.getOut().println(Program.valueToString(f.getStack().pop()));
         }
     }, "pop off every value in the stack and print each one with a new line", "Pops every value off the stack, and prints each one on a separate line", "popoutallln");
     Instruction NEW_LINE = new Instruction(f -> {

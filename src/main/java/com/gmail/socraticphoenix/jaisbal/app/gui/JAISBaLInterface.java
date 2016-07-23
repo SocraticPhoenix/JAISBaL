@@ -463,7 +463,6 @@ public class JAISBaLInterface {
     }
 
     /**
-     * @noinspection ALL
      */
     public JComponent $$$getRootComponent$$$() {
         return panel1;

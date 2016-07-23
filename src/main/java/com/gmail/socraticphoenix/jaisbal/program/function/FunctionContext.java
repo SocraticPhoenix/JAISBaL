@@ -223,8 +223,8 @@ public class FunctionContext extends PlasmaObject {
         if (!context.isImplicitInput() && !context.getParameters().isEmpty()) {
             String p = params.toString();
             builder.append(p).append(PlasmaStringUtil.indent(length - p.length(), " ")).append(Program.COMMENT_START).append(" request input ").append(Program.COMMENT_END);
+            builder.append(System.lineSeparator());
         }
-        builder.append(System.lineSeparator());
         if (!preProcessed.isEmpty()) {
             for (Triple<Instruction, String, String> piece : preProcessed) {
                 builder.append(piece.getC()).append(PlasmaStringUtil.indent(length - piece.getC().length(), " ")).append(Program.COMMENT_START).append(" ").append(StringFormat.fromString(piece.getA().getDescription()).filler().var("arg", piece.getB()).fill()).append(" ");

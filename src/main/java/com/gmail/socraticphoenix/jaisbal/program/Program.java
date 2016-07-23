@@ -23,9 +23,9 @@
 package com.gmail.socraticphoenix.jaisbal.program;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.function.Function;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.file.PlasmaFileUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
@@ -33,6 +33,7 @@ import com.gmail.socraticphoenix.plasma.string.BracketCounter;
 import com.gmail.socraticphoenix.plasma.string.CharacterStream;
 import com.gmail.socraticphoenix.plasma.string.CommentRemover;
 import com.gmail.socraticphoenix.plasma.string.Escaper;
+import com.gmail.socraticphoenix.plasma.string.QuotationTracker;
 import com.gmail.socraticphoenix.plasma.string.StringParseException;
 
 import java.io.IOException;
@@ -133,14 +134,6 @@ public class Program extends PlasmaObject {
         }
     }
 
-    public void verify() throws JAISBaLExecutionException {
-        this.main.verify();
-
-        for(Function f : this.functions.values()) {
-            f.verify();
-        }
-    }
-
     public static String clean(String program, boolean verbose) {
         program = program.replaceAll("\r", "\n").replaceAll(System.lineSeparator(), "\n");
         while (program.contains("\n\n")) {
@@ -173,27 +166,16 @@ public class Program extends PlasmaObject {
         stream.consumeAll(Program.IGNORE);
         if (stream.isNext('(')) {
             stream.consume('(');
-            StringBuilder funcBuilder = new StringBuilder();
             BracketCounter counter = new BracketCounter();
             counter.registerBrackets('[', ']');
             while (stream.hasNext()) {
-                char c = stream.next().get();
-                if (counter.isCounting(c)) {
-                    counter.consider(c);
-                }
-
-                if (c == ',' || c == ')') {
-                    String func = funcBuilder.toString();
-                    functions.add(func);
-                    if (c == ')') {
-                        break;
-                    } else {
-                        stream.consume(',');
-                    }
-                }
-
-                if (!counter.isBalanced() || !Program.contains(c, verbose ? Program.IGNORE_VERBOSE : Program.IGNORE)) {
-                    funcBuilder.append(c);
+                String s = stream.nextUntil(c -> c == ',' || c == ')', counter, new QuotationTracker(), Program.ESCAPER, false);
+                functions.add(Program.clean(s, verbose));
+                if (stream.isNext(')')) {
+                    stream.consume(')');
+                    break;
+                } else {
+                    stream.consumeAll(',');
                 }
             }
         }
@@ -242,6 +224,14 @@ public class Program extends PlasmaObject {
         return p;
     }
 
+    public void verify() throws JAISBaLExecutionException {
+        this.main.verify();
+
+        for (Function f : this.functions.values()) {
+            f.verify();
+        }
+    }
+
     public String getContent() {
         return this.content;
     }
@@ -251,8 +241,14 @@ public class Program extends PlasmaObject {
         builder.append("# ").append(Program.COMMENT_START).append(" enable verbose parsing ").append(Program.COMMENT_END).append(System.lineSeparator());
         if (!this.functions.isEmpty()) {
             builder.append("(").append(System.lineSeparator());
-            for (Function f : this.functions.values()) {
+            List<Function> functions = this.functions.values().stream().collect(Collectors.toList());
+            for (int i = 0; i < functions.size(); i++) {
+                Function f = functions.get(i);
                 builder.append(f.getName()).append(":").append(System.lineSeparator()).append(f.explain(1));
+                if (i < functions.size() - 1) {
+                    builder.append(",").append(System.lineSeparator());
+
+                }
             }
             builder.append(")").append(System.lineSeparator());
         }
@@ -263,8 +259,14 @@ public class Program extends PlasmaObject {
         StringBuilder builder = new StringBuilder();
         if (!this.functions.isEmpty()) {
             builder.append("(");
-            for (Function f : this.functions.values()) {
+            List<Function> functions = this.functions.values().stream().collect(Collectors.toList());
+            for (int i = 0; i < functions.size(); i++) {
+                Function f = functions.get(i);
                 builder.append(f.getName()).append(f.getName().length() == 1 ? "" : ":").append(f.minify(false));
+                if (i < functions.size() - 1) {
+                    builder.append(",");
+
+                }
             }
             builder.append(")");
         }

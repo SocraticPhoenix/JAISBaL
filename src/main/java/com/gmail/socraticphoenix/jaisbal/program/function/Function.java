@@ -82,10 +82,8 @@ public class Function extends PlasmaObject {
     public static List<String> verboseInstructions(String s) throws JAISBaLExecutionException {
         List<String> instructions = new ArrayList<>();
         CharacterStream stream = new CharacterStream(s);
-        BracketCounter counter = new BracketCounter();
-        counter.registerBrackets('[', ']');
         while (stream.hasNext()) {
-            instructions.add(stream.nextUntil('\n', counter).trim());
+            instructions.add(stream.nextUntil('\n').trim());
             stream.consumeAll('\n');
             stream.consumeAll(' ');
         }
