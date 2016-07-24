@@ -81,7 +81,7 @@ print1 hello world
 ```
 will behave completely differently from the character program:
 ```
-hhello world /# h is the character id for print1 #/
+hhello world /# assuming h is the character id for print1 #/
 ```
 
 ###Value Parsing
