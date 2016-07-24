@@ -171,7 +171,7 @@ public class JAISBaLInterface {
                         JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                         Throwable cause = e1;
                         while ((cause = cause.getCause()) != null) {
-                            JAISBaL.getOut().println("Caused by: " + e1.getClass().getName() + ": " + cause.getMessage());
+                            JAISBaL.getOut().println("Caused by: " + cause.getClass().getName() + ": " + cause.getMessage());
                         }
                     }
                 }
@@ -198,7 +198,7 @@ public class JAISBaLInterface {
                                 JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                                 Throwable cause = e1;
                                 while ((cause = cause.getCause()) != null) {
-                                    JAISBaL.getOut().println("Caused by: " + e1.getClass().getName() + ": " + cause.getMessage());
+                                    JAISBaL.getOut().println("Caused by: " + cause.getClass().getName() + ": " + cause.getMessage());
                                 }
                             }
                             running.set(false);
@@ -235,7 +235,7 @@ public class JAISBaLInterface {
                     JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                     Throwable cause = e1;
                     while ((cause = cause.getCause()) != null) {
-                        JAISBaL.getOut().println("Caused by: " + e1.getClass().getName() + ": " + cause.getMessage());
+                        JAISBaL.getOut().println("Caused by: " + cause.getClass().getName() + ": " + cause.getMessage());
                     }
                 }
             });
@@ -250,7 +250,7 @@ public class JAISBaLInterface {
                     JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                     Throwable cause = e1;
                     while ((cause = cause.getCause()) != null) {
-                        JAISBaL.getOut().println("Caused by: " + e1.getClass().getName() + ": " + cause.getMessage());
+                        JAISBaL.getOut().println("Caused by: " + cause.getClass().getName() + ": " + cause.getMessage());
                     }
                 }
             });
@@ -274,7 +274,7 @@ public class JAISBaLInterface {
                             JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                             Throwable cause = e1;
                             while ((cause = cause.getCause()) != null) {
-                                JAISBaL.getOut().println("Caused by: " + e1.getClass().getName() + ": " + cause.getMessage());
+                                JAISBaL.getOut().println("Caused by: " + cause.getClass().getName() + ": " + cause.getMessage());
                             }
                         }
                     } else {
@@ -299,7 +299,7 @@ public class JAISBaLInterface {
                     JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                     Throwable cause = e1;
                     while ((cause = cause.getCause()) != null) {
-                        JAISBaL.getOut().println("Caused by: " + e1.getClass().getName() + ": " + cause.getMessage());
+                        JAISBaL.getOut().println("Caused by: " + cause.getClass().getName() + ": " + cause.getMessage());
                     }
                 }
             });

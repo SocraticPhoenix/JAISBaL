@@ -22,6 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
+import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
@@ -44,31 +45,29 @@ public class SyntheticFunction implements DangerousConsumer<FunctionContext> {
 
     @Override
     public void accept(FunctionContext context) throws JAISBaLExecutionException, IOException {
-        this.validate(context.getStack());
+        this.validate(context.getStack(), context);
         this.consumer.accept(context);
     }
 
-    private void validate(Stack<CastableValue> stack) throws JAISBaLExecutionException {
+    private void validate(Stack<CastableValue> stack, FunctionContext context) throws JAISBaLExecutionException {
         if (this.parameters.size() == 0) {
             return;
         }
 
-        if (stack.size() < this.parameters.size()) {
-            throw new JAISBaLExecutionException("Stack underflow: required at least " + this.parameters.size() + " parameter(s), but only " + stack.size() + " were/was available on the stack");
-        } else {
-            CastableValue[] verified = new CastableValue[this.parameters.size()];
-            int ind = 0;
-            for (int i = this.parameters.size() - 1; i >= 0; i--) {
-                Type param = this.parameters.get(i);
-                CastableValue value = stack.pop();
-                if (param.matches(value)) {
-                    verified[ind] = value;
-                    ind++;
-                } else {
-                    throw new JAISBaLExecutionException("Invalid parameter: " + value.getValue().orElse(null) + " cannot be converted to " + param.getName());
-                }
+        Program.checkUnderflow(this.parameters.size(), context);
+
+        CastableValue[] verified = new CastableValue[this.parameters.size()];
+        int ind = 0;
+        for (int i = this.parameters.size() - 1; i >= 0; i--) {
+            Type param = this.parameters.get(i);
+            CastableValue value = stack.pop();
+            if (param.matches(value)) {
+                verified[ind] = value;
+                ind++;
+            } else {
+                throw new JAISBaLExecutionException("Invalid parameter: " + value.getValue().orElse(null) + " cannot be converted to " + param.getName());
             }
-            Stream.of(verified).forEach(stack::push);
         }
+        Stream.of(verified).forEach(stack::push);
     }
 }

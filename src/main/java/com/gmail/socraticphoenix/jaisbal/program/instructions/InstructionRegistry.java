@@ -28,6 +28,7 @@ import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
 import com.gmail.socraticphoenix.plasma.string.TableFormat;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +76,8 @@ public class InstructionRegistry implements Instructions {
         r(SWAP);
         r(DUPLICATE);
         r(DUPLICATE_ALL);
+        r(TRIPLICATE);
+        r(TRIPLICATE_ALL);
         r(STORE);
         r(STORE_STACK);
         r(LOAD);
@@ -127,6 +130,8 @@ public class InstructionRegistry implements Instructions {
         r(ARRAY_LENGTH);
         r(ARRAY_SORT);
         r(ARRAY_SORT_REVERSE);
+        r(ARRAY_RANGED);
+        r(ARRAY_RANGED_INCLUSIVE);
         r(PUSH_TRUTHY);
         r(PUSH_FALSY);
         r(NEGATE);
@@ -151,12 +156,13 @@ public class InstructionRegistry implements Instructions {
         r(SUPER_PUSH);
         r(RELATIVE_JUMP);
         r(INDEX_JUMP);
-        r(TRIPLICATE);
-        r(TRIPLICATE_ALL);
         r(POP_SPLIT_PUSH);
         r(QUINE);
         r(FUNCTION);
         r(NAME);
+
+
+        rc(CastableValue.of(new BigDecimal("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679")), "pi");
 
 
         InstructionRegistry.getBlockStarts().add("for");

@@ -39,7 +39,7 @@ public class StringNumberCaster implements Caster {
 
     @Override
     public boolean canCast(Object o, Class aClass) {
-        return (o instanceof String && BigDecimal.class.equals(aClass) && PlasmaMathUtil.isBigDecimal((String) o)) ||
-                (o instanceof BigDecimal && String.class.equals(aClass) );
+        return (o instanceof String && Number.class.isAssignableFrom(aClass) && PlasmaMathUtil.isBigDecimal((String) o)) ||
+                (o instanceof Number && String.class.isAssignableFrom(aClass));
     }
 }

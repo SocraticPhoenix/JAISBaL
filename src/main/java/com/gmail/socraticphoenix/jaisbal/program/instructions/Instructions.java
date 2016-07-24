@@ -300,12 +300,6 @@ public interface Instructions {
         BigDecimal decimal = f.getStack().pop().getValueAs(BigDecimal.class).get();
         f.getStack().push(CastableValue.of(decimal.setScale(0, RoundingMode.HALF_UP)));
     }), "round the top value of the stack", "Calculates round a (traditional rounding). This instruction is only succesful if the top value of the stack is a number", "round");
-    Instruction SQRT = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
-        BigDecimal decimal = f.getStack().pop().getValueAs(BigDecimal.class).get();
-        f.getStack().push(CastableValue.of(Instructions.sqrt(decimal)));
-
-    }), "compute the square root of the top value on the stack", "Computes the square root of a, and pushes it to the stack. This instruction fails if a is not a number", "sqrt");
-
     Instruction RAND_DECIMAL = new Instruction(f -> {
         f.getStack().push(CastableValue.of(new BigDecimal(new Random().nextDouble())));
     }, "push a random decimal in the range [0, 1)", "Pseudorandomly generates a decimal number in the range [0, 1) and pushes it", "randd");
@@ -466,6 +460,42 @@ public interface Instructions {
         Arrays.sort(array, (a, b) -> Instructions.compare(b, a));
         f.getStack().push(CastableValue.of(array));
     }), "pop the top value of the stack, sort it, reverse it, and push it", "Pops the top value off the stack and sorts it from largest to smallest (see compare). This instruction fails if a is not an array", "rsort");
+    Instruction ARRAY_RANGED = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.NUMBER), f -> {
+        BigInteger a = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigIntegerExact();
+        BigInteger b = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigIntegerExact();
+        try {
+            BigInteger min = PlasmaListUtil.getMinimum(new BigInteger[]{a, b});
+            BigInteger max = PlasmaListUtil.getMaximum(new BigInteger[]{a, b});
+            int size = max.subtract(min).intValueExact();
+            CastableValue[] array = new CastableValue[size];
+            for (int i = 0; i < array.length; i++) {
+                array[i] = CastableValue.of(min);
+                min = min.add(BigInteger.ONE);
+            }
+            f.getStack().push(CastableValue.of(array));
+
+        } catch (ArithmeticException | NegativeArraySizeException e) {
+            throw new JAISBaLExecutionException("Either the range is too large/small or " + a + " and/or " + b + " are not integers", e);
+        }
+    }), "push an array containing all numbers in the range of the two numbers on the top of the stack", "Pops a and b off the stack and pushes an array containing the range between them. The range will be 1-incremented from min(a, b) to max(a, b) - 1. ", "range");
+    Instruction ARRAY_RANGED_INCLUSIVE = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.NUMBER), f -> {
+        BigInteger a = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigIntegerExact();
+        BigInteger b = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigIntegerExact();
+        try {
+            BigInteger min = PlasmaListUtil.getMinimum(new BigInteger[]{a, b});
+            BigInteger max = PlasmaListUtil.getMaximum(new BigInteger[]{a, b});
+            int size = max.subtract(min).intValueExact() + 1;
+            CastableValue[] array = new CastableValue[size];
+            for (int i = 0; i < array.length; i++) {
+                array[i] = CastableValue.of(min);
+                min = min.add(BigInteger.ONE);
+            }
+            f.getStack().push(CastableValue.of(array));
+
+        } catch (ArithmeticException e) {
+            throw new JAISBaLExecutionException("Either the range is too large or " + a + " and/or " + b + " are not integers");
+        }
+    }), "push an array containing all numbers in the range of the two numbers on the top of the stack, inclusively", "Pops a and b off the stack and pushes an array containing the range between them. The range will be 1-incremented from min(a, b) to max(a, b). ", "rangein");
     Instruction PUSH_TRUTHY = new Instruction(f -> f.getStack().push(new CastableValue(new BigDecimal(1))), "push a truthy value onto the stack", "Pushes 1, a truthy value, onto the stack", "true");
     Instruction PUSH_FALSY = new Instruction(f -> f.getStack().push(new CastableValue(new BigDecimal(0))), "push a falsy value onto the stack", "Pushes 0, a falsy value, onto the stack", "false");
     Instruction COMPARE = new Instruction(f -> {
@@ -671,6 +701,15 @@ public interface Instructions {
         Program.checkUnderflow(1, f);
         f.getStack().push(Instructions.name(f.getStack().pop()));
     }, "take the top value off the stack, determines its name, and push it", "Determines the name of the top value on the stack. If a is a 32-bit integer, a string representation of it's number name is returned, if a is an array, the name of every value in the array is computed, and pushed as a single array. Otherwise, the string value of a is pushed", "name");
+    BigDecimal SQRT_DIG = new BigDecimal(150);
+    BigDecimal SQRT_PRE = new BigDecimal(1).divide(new BigDecimal(10).pow(SQRT_DIG.intValue()));
+    BigDecimal TWO = new BigDecimal("2");
+    Instruction SQRT = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
+        BigDecimal decimal = f.getStack().pop().getValueAs(BigDecimal.class).get();
+        f.getStack().push(CastableValue.of(Instructions.sqrt(decimal)));
+
+    }), "compute the square root of the top value on the stack", "Computes the square root of a, and pushes it to the stack. This instruction fails if a is not a number", "sqrt");
+    List<String> TRUTHY = PlasmaListUtil.buildList("true", "yes", "t");
     Instruction NEGATE = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         if (Instructions.truthy(f.getStack().pop())) {
@@ -720,11 +759,6 @@ public interface Instructions {
             f.setCurrent(falsyEnd);
         }
     }, "if the top value of the stack is truthy, execute the next block, otherwise, execute the else block", "Pops the top value of the stack. If a is truthy, run the  if block, otherwise run the else block (see if). This instruction also opens a new function frame", "ifelse");
-
-    BigDecimal SQRT_DIG = new BigDecimal(150);
-    BigDecimal SQRT_PRE = new BigDecimal(1).divide(new BigDecimal(10).pow(SQRT_DIG.intValue()));
-    BigDecimal TWO = new BigDecimal("2");
-    List<String> TRUTHY = PlasmaListUtil.buildList("true", "yes", "t");
 
     static CastableValue name(CastableValue value) {
         if (value.getValueAs(BigDecimal.class).isPresent()) {
