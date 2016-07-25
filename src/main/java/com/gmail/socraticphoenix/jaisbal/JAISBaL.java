@@ -32,6 +32,7 @@ import com.gmail.socraticphoenix.jaisbal.app.util.StringNumberCaster;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharPage;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.ConstantInstruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
 import com.gmail.socraticphoenix.plasma.file.jlsc.JLSCException;
@@ -299,9 +300,24 @@ public class JAISBaL {
                 id++;
                 if (sup.get(p).getMappings().length <= id) {
                     p++;
+                    id = 0;
                 }
             } while (!JAISBaL.isAllowable(sup.get(p).getMappings()[id]));
             instruction.assignId(sup.get(p).getMappings()[id]);
+        }
+
+        List<JAISBaLCharPage> consts = JAISBaL.getConstantPages();
+        id = 0;
+        p = 0;
+        for(ConstantInstruction instruction : InstructionRegistry.getConstants().stream().filter(i -> i.getId() == '\0').collect(Collectors.toList())) {
+            do {
+                id++;
+                if(sup.get(p).getMappings().length <= id) {
+                    p++;
+                    id = 0;
+                }
+            } while (!JAISBaL.isAllowable(consts.get(p).getMappings()[id]));
+            instruction.assignId(consts.get(p).getMappings()[id]);
         }
 
         InstructionRegistry.checkDuplicates();
