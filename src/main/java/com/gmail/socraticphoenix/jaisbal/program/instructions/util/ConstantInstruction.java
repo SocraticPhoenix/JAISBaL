@@ -29,13 +29,18 @@ import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 public class ConstantInstruction extends Instruction {
     private CastableValue value;
 
-    public ConstantInstruction(CastableValue value, String explanation, String documentation, String... aliases) {
+    public ConstantInstruction(CastableValue value, double group, String explanation, String documentation, String... aliases) {
         super(f -> {
             f.getStack().push(value);
             return State.NORMAL;
-        }, c -> null, 100, explanation, documentation, aliases);
+        }, c -> null, group, explanation, documentation, aliases);
         this.value = value;
     }
+
+    public ConstantInstruction(CastableValue value, String explanation, String documentation, String... aliases) {
+        this(value, 0, explanation, documentation, aliases);
+    }
+
 
     public CastableValue getValue() {
         return this.value;

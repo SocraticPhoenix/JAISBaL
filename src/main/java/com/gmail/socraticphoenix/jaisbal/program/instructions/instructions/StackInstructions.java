@@ -207,19 +207,19 @@ public interface StackInstructions {
             CastableValue value = f.getStack().pop();
             BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
             try {
-                f.getLocals().put(index.longValueExact(), value);
+                f.getLocals().put(index.longValue(), value);
             } catch (ArithmeticException e) {
                 throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large", e);
             }
             return State.NORMAL;
-        }, InstructionUtility.number(), 0.05, "store the top value of the stack into var${arg}", "Pops the top value off the stack and stores it in the given var. This instruction takes one argument, a number (see pushnum). This instruction is only succesful if the argument is a 64-bit integer", "store");
+        }, InstructionUtility.number(), 0.05, "store the top value of the stack into var${arg}", "Pops the top value off the stack and stores it in the given var. This instruction takes one argument, a number (see pushnum)", "store");
         Instruction LOAD = new Instruction(f -> {
             CastableValue indexV = f.getCurrentArgEasy();
             Type.NUMBER.checkMatches(indexV);
             BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
             try {
-                if (f.getLocals().get(index.longValueExact()) != null) {
-                    f.getStack().push(f.getLocals().get(index.longValueExact()));
+                if (f.getLocals().get(index.longValue()) != null) {
+                    f.getStack().push(f.getLocals().get(index.longValue()));
                 } else {
                     throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " does not lead to a registered local variable");
                 }
@@ -227,7 +227,7 @@ public interface StackInstructions {
                 throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large", e);
             }
             return State.NORMAL;
-        }, InstructionUtility.number(), 0.05, "push the value in var${arg} onto the stack", "Pushes the value in the given var onto the stack. This instruction takes on argument, a number (see pushnum). This instruction is only succesful if the argument is a 64-bit integer", "load");
+        }, InstructionUtility.number(), 0.05, "push the value in var${arg} onto the stack", "Pushes the value in the given var onto the stack. This instruction takes on argument, a number (see pushnum)", "load");
 
         Instruction STORE_STACK = new Instruction(f -> {
             Program.checkUnderflow(2, f);
@@ -236,20 +236,20 @@ public interface StackInstructions {
             CastableValue value = f.getStack().pop();
             BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
             try {
-                f.getLocals().put(index.longValueExact(), value);
+                f.getLocals().put(index.longValue(), value);
             } catch (ArithmeticException e) {
                 throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large", e);
             }
             return State.NORMAL;
-        }, InstructionUtility.number(), 0.05, "store the second value in the stack at var<top value of stack>", "Pops the top two values off the stack, and stores b in var a. This instruction is only successful if a is a 64-bit integer", "sstore");
+        }, InstructionUtility.number(), 0.05, "store the second value in the stack at var<top value of stack>", "Pops the top two values off the stack, and stores b in var a", "sstore");
         Instruction LOAD_STACK = new Instruction(f -> {
             Program.checkUnderflow(1, f);
             CastableValue indexV = f.getStack().pop();
             Type.NUMBER.checkMatches(indexV);
             BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
             try {
-                if (f.getLocals().get(index.longValueExact()) != null) {
-                    f.getStack().push(f.getLocals().get(index.longValueExact()));
+                if (f.getLocals().get(index.longValue()) != null) {
+                    f.getStack().push(f.getLocals().get(index.longValue()));
                 } else {
                     throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " does not lead to a registered local variable");
                 }
@@ -257,7 +257,7 @@ public interface StackInstructions {
                 throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large", e);
             }
             return State.NORMAL;
-        }, InstructionUtility.number(), 0.05, "push the value in var<top value of stack> onto the stack", "Pops the top value off the stack and loads the value in var a onto the stack. This instruction is only succesful if a is a 64-bit integer", "sload");
+        }, InstructionUtility.number(), 0.05, "push the value in var<top value of stack> onto the stack", "Pops the top value off the stack and loads the value in var a onto the stack", "sload");
         Instruction STORE_ALL = new Instruction(f -> {
             for (long i = f.getStack().size() - 1; !f.getStack().isEmpty(); i--) {
                 f.getLocals().put(i, f.getStack().pop());

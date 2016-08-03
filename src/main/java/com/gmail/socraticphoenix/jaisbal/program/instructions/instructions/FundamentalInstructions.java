@@ -34,11 +34,20 @@ public interface FundamentalInstructions { //group -1
         Type.STRING.checkMatches(f.getCurrentArgEasy());
         String s = f.getCurrentArgEasy().getAsString().get();
         if (f.getProgram().getFunction(s).isPresent()) {
-             return f.getProgram().getFunction(s).get().run(f.getStack()).deTransmit();
+            return f.getProgram().getFunction(s).get().run(f.getStack()).deTransmit();
         } else {
             throw new JAISBaLExecutionException("Could not find function " + s);
         }
     }, InstructionUtility.terminated(), -1, "call function ${arg}", "Calls the given function. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no function exists for the given name", "f", "call");
+    Instruction CHAR_FUNCTION = new Instruction(f -> {
+        Type.STRING.checkMatches(f.getCurrentArgEasy());
+        String s = f.getCurrentArgEasy().getAsString().get();
+        if (f.getProgram().getFunction(s).isPresent()) {
+            return f.getProgram().getFunction(s).get().run(f.getStack()).deTransmit();
+        } else {
+            throw new JAISBaLExecutionException("Could not find function " + s);
+        }
+    }, InstructionUtility.fixed(1), -1, "call function ${arg}", "Calls the given function. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no function exists for the given name", "l", "call1");
     Instruction AUX_FUNCTION = new AuxiliaryInstruction();
     Instruction AUX_CONSTANT = new AuxiliaryConstant();
 }

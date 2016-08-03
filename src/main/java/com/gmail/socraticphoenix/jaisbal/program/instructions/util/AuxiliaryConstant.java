@@ -39,7 +39,7 @@ public class AuxiliaryConstant extends Instruction {
             CastableValue value = f.getCurrentArgEasy();
             Type.NUMBER.checkMatches(value);
             try {
-                int i = value.getValueAs(BigDecimal.class).get().intValueExact();
+                int i = value.getValueAs(BigDecimal.class).get().intValue();
                 f.getStack().push(InstructionRegistry.getAuxiliaryConstants().get(i));
                 return State.NORMAL;
             } catch (ArithmeticException e) {

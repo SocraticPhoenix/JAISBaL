@@ -5,7 +5,7 @@
 JAISBaL is Just Another Interpreted Stack-Based Language, created by me. JAISBaL is meant to be a golfing language for dummies and fanatics alike, and features a verbose and character parsing mode, as well as a minifier and explainer to translate between the two. The JAISBaL interpreter is written in Java, and this repository contains its source code. The JAISBaL grammar specification is fully developed, though not all instructions are defined.
 
 ##This Repository
-I open to all contributions! Please open a pull request or issue if you have a problem, and I'll discuss the matter with you further in the comments.
+I am open to all contributions! Please open a pull request or issue if you have a problem, and I'll discuss the matter with you further in the comments.
 
 ##The JAISBaL Command Line Tool
 Arguments for the JAISBaL command line tool are entered in key-value pairs, such as "mode=file" or "action=exec." See the table below for arguments.
@@ -13,14 +13,15 @@ Arguments for the JAISBaL command line tool are entered in key-value pairs, such
 | Argument | Acceptable Values | Description | Optional? |
 | -------- | ----------- | ---------- | ---------- |
 |mode |file, input, gui | defines the input mode for the tool | true (input assumed)|
-|content |JAISBaL program | defines the input for mode=input or mode=gui| false (when mode=input)|
-|file |Existing File |defines the input for mode=file or mode=gui| false (when mode=file)|
+|content | JAISBaL program | defines the input for mode=input or mode=gui| false (when mode=input)|
+|file | Existing File |defines the input for mode=file or mode=gui| false (when mode=file)|
 |encoding| utf8, jaisbal| defines the character encoding for file=...| true (jaisbal assumed) |
 |target-encoding | utf8, jaisbal | defines the target character encoding for mode=file | true (jaisbal assumed) |
 |exec-number| integer | defines the number of times to run the program for action=exec| true (1 assumed) |
 |exec-time| integer | defines the maximum runtime, in milliseconds, of the program for action=exec| true (infinite assumed |
 |input[x] | A comma separated list of input| defines the input for the program for action=exec. There can be up to [exec-number] of these arguments, each one specifying the arguments for its given run. Indices start at 0, so input0 defines input for the first run | true |
 |action | exec, minify, explain, encode| defines the action the tool should take| false |
+|security  |  integer | defines the security level of the current program (see "environment" below) | false (100 assumed) |
 ###Actions
 - exec : executes the program exec-number times, and exits after exec-time milliseconds have passed, or execution is finished
 - minify : minifies the given program, and either outputs it to the screen (mode=input) or writes it to the file (mode=file)
@@ -49,11 +50,11 @@ Every JAISBaL file must define its parsing type. If the first character of a fil
 ###Basic Syntax
 JAISBaL files have the general format
 ```
-# /# Optional verbose specifier #/
+# \# Optional verbose specifier #\
 (
-  /# Function block #/
+  \# Function block #\
 )
-/# Main function #/
+\# Main function #\
 ```
 and comments are enclosed between `\#` and `#\`
 ###Verbose Parsing
@@ -66,14 +67,14 @@ print1 hello world}
 ```
 are all equivalent.
 ###Character Parsing
-If the parser is set to character, each character will be considered an instruction. This is were the difference between printterm and print1 occurs. In character mode, the parser reads the file as a single stream of charaters, instead of splitting it up into lines. Therefore, an instruction must read it's value out of the stream. Print1 reads the next character and prints it, print2 reads the next two characters and prints them, and printterm reads up to the next unescaped "}." This is, of course, significant, because the verbose program:
+If the parser is set to character, each character will be considered an instruction. This is where the difference between printterm and print1 occurs. In character mode, the parser reads the file as a single stream of charaters, instead of splitting it up into lines. Therefore, an instruction must read it's value out of the stream. Print1 reads the next character and prints it, print2 reads the next two characters and prints them, and printterm reads up to the next unescaped "}." This is, of course, significant, because the verbose program:
 ```
 #
 print1 hello world
 ```
 will behave completely differently from the character program:
 ```
-hhello world /# assuming h is the character id for print1 #/
+hhello world \# assuming h is the character id for print1 #\
 ```
 
 ###Value Parsing
@@ -85,6 +86,18 @@ Every function in JAISBaL has it's own context. Function contexts each have thei
 
 ###Design
 JAISBaL is heavily inspired by the JVM, and has both a stack and variable register. Variables are registered at 64-bit indices, and can be stored and loaded on a whim. JAISBaL is technically statically typed, but most instructions attempt to define behavior for all possible operands. Moreover, numbers are represented as arbitrary precision [BigDecimals](https://docs.oracle.com/javase/7/docs/api/java/math/BigDecimal.html), and can be converted to and from strings.
+
+###Security
+JAISBaL has a built in security system that prevents 'dangerous' instructions from being run. The system works by taking a maximum 'danger level' and blocking any instructions that have the same, or greater dangler level. Below is a list of danger levels, and what instruction they're applied to
+
+| Level | Description |
+| -----|---------- |
+| 0-9 | Normal instructions, ones which only modify the stack and local variables in the JAISBaL environment |
+| 10-19 | Instructions which **read** from URLs or other network sources |
+| 20-29 | Instructions which **read** from files or other local sources |
+| 30-39 | Instructions which **write** to URLs or other network sources |
+| 40-49 | Instructions which **write** to files or other local sources |
+Danger levels are in groups 10 so that more minute control can be applied to instructions in the future, but for now instructions will only have the values 0, 10, 20, 30, and 40. Also, it should also be noted that the danger level of each instruction is recorded in the JAISBaL Instruction Reference.
 
 ##Instruction Reference
 The full instruction reference is available [here](https://github.com/SocraticPhoenix/JAISBaL/blob/master/INSTRUCTIONS.md)

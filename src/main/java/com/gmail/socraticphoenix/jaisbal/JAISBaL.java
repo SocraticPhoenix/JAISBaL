@@ -32,10 +32,12 @@ import com.gmail.socraticphoenix.jaisbal.app.util.StringNumberCaster;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharPage;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.SecurityMonitor;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.util.ConstantInstruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
 import com.gmail.socraticphoenix.plasma.file.jlsc.JLSCException;
+import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.reflection.util.PlasmaReflectionUtil;
 import com.gmail.socraticphoenix.plasma.string.BracketCounter;
 import com.gmail.socraticphoenix.plasma.string.CharacterStream;
@@ -98,6 +100,7 @@ public class JAISBaL {
             if (a.length == 0) {
                 JAISBaL.charsetInit();
                 gui = true;
+                InstructionRegistry.setMonitor(new SecurityMonitor(100));
                 modes().get("gui").accept(getDefaultArgs());
             } else {
                 Map<String, String> args = new HashMap<>();
@@ -112,6 +115,15 @@ public class JAISBaL {
                         args.put(pieces[0], pieces[1]);
                     }
                 }
+
+                int slevel;
+                if(args.containsKey("security") && PlasmaMathUtil.isInteger(args.get("security"))) {
+                    slevel = Integer.parseInt(args.get("security"));
+                } else {
+                    slevel = 100;
+                }
+
+                InstructionRegistry.setMonitor(new SecurityMonitor(slevel));
 
                 if (!args.get("immediate-quit").equals("true")) {
                     if (args.containsKey("dev")) {

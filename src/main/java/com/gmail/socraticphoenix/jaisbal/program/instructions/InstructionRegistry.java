@@ -24,11 +24,13 @@ package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.SecurityMonitor;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.constants.StandardConstants;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.ArrayInstructions;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.ConditionalInstructions;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.ControlFlowInstructions;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.FundamentalInstructions;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.InputOutputInstructions;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.MathematicalInstructions;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.MiscellaneousInstructions;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.StackInstructions;
@@ -54,6 +56,8 @@ public class InstructionRegistry {
     private static List<String> floofyBlocks;
     private static List<String> blockStart;
     private static List<String> blockEnd;
+
+    private static SecurityMonitor monitor;
 
     public static void registerDefaults() {
         InstructionRegistry.instructions = new ArrayList<>();
@@ -84,6 +88,7 @@ public class InstructionRegistry {
 
         //Fundamental instructions
         r(FundamentalInstructions.FUNCTION);
+        r(FundamentalInstructions.CHAR_FUNCTION);
         r(FundamentalInstructions.AUX_FUNCTION);
         r(FundamentalInstructions.AUX_CONSTANT);
 
@@ -203,10 +208,17 @@ public class InstructionRegistry {
         r(MathematicalInstructions.Operations.SUBTRACT);
         r(MathematicalInstructions.Operations.MULTIPLY);
         r(MathematicalInstructions.Operations.DIVIDE);
-            //Other operations
+        r(MathematicalInstructions.Operations.ADD_ALL);
+        r(MathematicalInstructions.Operations.SUBTRACT_ALL);
+        r(MathematicalInstructions.Operations.MULTIPLY_ALL);
+        r(MathematicalInstructions.Operations.DIVIDE_ALL);
+        r(MathematicalInstructions.Operations.INCREMENT);
+        r(MathematicalInstructions.Operations.DECREMENT);
+        //Other operations
         r(MathematicalInstructions.Operations.POW);
         r(MathematicalInstructions.Operations.MODULO);
         r(MathematicalInstructions.Operations.SQRT);
+        r(MathematicalInstructions.Operations.ABSOLUTE_VALUE);
             //Rounding operations
         r(MathematicalInstructions.Operations.FLOOR);
         r(MathematicalInstructions.Operations.CEIL);
@@ -218,6 +230,13 @@ public class InstructionRegistry {
         r(MathematicalInstructions.Functions.RAND_INTEGER_BOUNDED);
         r(MathematicalInstructions.Functions.RAND_INTEGER_BOUNDED_1);
         r(MathematicalInstructions.Functions.RAND_INTEGER_DOUBLE_BOUNDED);
+            //Mathematical Functions
+        r(MathematicalInstructions.Functions.FACTORIAL);
+        r(MathematicalInstructions.Functions.INVERSE);
+        r(MathematicalInstructions.Functions.SIGNUM);
+        r(MathematicalInstructions.Functions.GREATEST_COMMON_FACTOR);
+        r(MathematicalInstructions.Functions.MAX);
+        r(MathematicalInstructions.Functions.MIN);
 
 
         //Arrays
@@ -237,23 +256,39 @@ public class InstructionRegistry {
         r(ArrayInstructions.ROTATE_NUMBER_STACK);
         r(ArrayInstructions.ARRAY_RANGED);
         r(ArrayInstructions.ARRAY_RANGED_INCLUSIVE);
+        r(ArrayInstructions.SHUFFLE);
             //Stack and array conversions
         r(ArrayInstructions.ARRAY_WRAP);
         r(ArrayInstructions.POP_SPLIT_PUSH);
         r(ArrayInstructions.REVERSE);
             //Concatenation
+        r(ArrayInstructions.JOIN);
         r(ArrayInstructions.CONCAT);
         r(ArrayInstructions.PUSH_NEW_LINE_CONCAT);
         r(ArrayInstructions.PUSH_SPACE_CONCAT);
         r(ArrayInstructions.PUSH_TAB_CONCAT);
+        r(ArrayInstructions.CONCAT_ALL);
             //String operations
         r(ArrayInstructions.SPLIT);
         r(ArrayInstructions.SPLIT_STACK);
+        r(ArrayInstructions.UPPERCASE);
+        r(ArrayInstructions.LOWERCASE);
+        r(ArrayInstructions.SWAPCASE);
 
 
         //Miscellaneous
         r(MiscellaneousInstructions.QUINE);
+        r(MiscellaneousInstructions.EXPLAINED_QUINE);
+        r(MiscellaneousInstructions.MINI_QUINE);
         r(MiscellaneousInstructions.NAME);
+
+        //IO Functions
+        rsi(InputOutputInstructions.READ_FILE);
+        rsi(InputOutputInstructions.WRITE_FILE);
+        rsi(InputOutputInstructions.APPEND_FILE);
+        rsi(InputOutputInstructions.READ_URL);
+        rsi(InputOutputInstructions.POST_URL);
+
 
         //-----------------------------------------------------------------------
         //End Of Instructions, version 1
@@ -277,14 +312,27 @@ public class InstructionRegistry {
         rc(CastableValue.of(StandardConstants.TAU), "tau");
         rc(CastableValue.of(StandardConstants.E), "natural_base");
         rc(CastableValue.of(StandardConstants.PHI), "phi");
+        rc(CastableValue.of("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "upper_alphabet");
+        rc(CastableValue.of("abcdefghijklmnopqrstuvwxyz"), "lower_alphabet");
+        rc(CastableValue.of("0123456789"), "digits");
 
         for (int i = 4; i <= 100; i++) {
-            rac(CastableValue.of(new BigDecimal("10").pow(i)));
+            CastableValue value = CastableValue.of(BigDecimal.TEN.pow(i));
+            String name = "10^" + i;
+            rc(new ConstantInstruction(value, 100, "push " + name + " onto the stack", "A constant that pushes " + name + " onto the stack", name.length() == 1 ? new String[0] : new String[]{name}));
         }
 
         //-----------------------------------------------------------------------
         //End Of Constants, version 1
         //-----------------------------------------------------------------------
+    }
+
+    public static SecurityMonitor getMonitor() {
+        return InstructionRegistry.monitor;
+    }
+
+    public static void setMonitor(SecurityMonitor monitor) {
+        InstructionRegistry.monitor = monitor;
     }
 
     public static void ra(Instruction instruction) {
@@ -454,10 +502,10 @@ public class InstructionRegistry {
     }
 
     public static TableFormat getAuxiliaryInstructionsDocumentation() {
-        TableFormat format = new TableFormat("ID", "Specification");
+        TableFormat format = new TableFormat("ID", "Specification", "Danger Level");
         for (int i = 0; i < InstructionRegistry.auxiliaryInstructions.size(); i++) {
             Instruction aux = InstructionRegistry.auxiliaryInstructions.get(i);
-            format.addRow(String.valueOf(i), aux.getDocumentation());
+            format.addRow(String.valueOf(i), aux.getDocumentation(), String.valueOf(aux.getDangerLevel()));
         }
         return format;
     }
@@ -472,8 +520,8 @@ public class InstructionRegistry {
     }
 
     private static TableFormat of(List<Instruction> instructions) {
-        TableFormat format = new TableFormat("ID", "Main Alias", "All Aliases", "Specification");
-        instructions.stream().sorted((a, b) -> Double.compare(a.getGroup(), b.getGroup())).forEach(i -> format.addRow(String.valueOf(i.getId()), i.getMainAlias(), PlasmaStringUtil.joinIntermediate(", ", i.getAliases().toArray()), i.getDocumentation()));
+        TableFormat format = new TableFormat("ID", "Main Alias", "All Aliases", "Specification", "Danger Level");
+        instructions.stream().sorted((a, b) -> Double.compare(a.getGroup(), b.getGroup())).forEach(i -> format.addRow(String.valueOf(i.getId()), i.getMainAlias(), PlasmaStringUtil.joinIntermediate(", ", i.getAliases().toArray()), i.getDocumentation(), String.valueOf(i.getDangerLevel())));
         return format;
     }
 

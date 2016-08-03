@@ -25,17 +25,14 @@ package com.gmail.socraticphoenix.jaisbal.program.instructions;
 import com.gmail.socraticphoenix.jaisbal.app.util.DangerousFunction;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.program.instructions.util.InstructionUtility;
-import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.CharacterStream;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Instruction {
-    public static final Instruction DUMMY = new Instruction(f -> State.NORMAL, c -> null, -1, "", "", "");
-
+    public static final Instruction DUMMY = new Instruction(f -> State.NORMAL, -1, "", "", "");
+    private int dangerLevel;
     private DangerousFunction<FunctionContext, State> action;
     private DangerousFunction<CharacterStream, String> valueReader;
     private String documentation;
@@ -44,15 +41,19 @@ public class Instruction {
     private char id;
     private double group;
 
-    public Instruction(DangerousFunction<FunctionContext, State> action, DangerousFunction<CharacterStream, String> valueReader, double group, String explanation, String documentation, String... aliases) {
+    public Instruction(DangerousFunction<FunctionContext, State> action, DangerousFunction<CharacterStream, String> valueReader, double group, int dangerLevel, String explanation, String documentation, String... aliases) {
         this.group = group;
-        this.action = action;
+        this.action = f -> {
+            InstructionRegistry.getMonitor().monitor(this);
+            return action.apply(f);
+        };
         this.valueReader = valueReader;
         this.aliases = new ArrayList<>();
         this.description = explanation;
         this.documentation = documentation;
         this.id = '\0';
         this.aliases = new ArrayList<>();
+        this.dangerLevel = dangerLevel;
         for (String s : aliases) {
             this.aliases.add(s);
             if (s.length() == 1 && this.id == '\0') {
@@ -61,29 +62,20 @@ public class Instruction {
         }
     }
 
-    public Instruction(DangerousFunction<FunctionContext, State> action, double group, String description, String documentation, String... aliases) {
-        this(action, c -> null, group, description, documentation, aliases);
+    public Instruction(DangerousFunction<FunctionContext, State> action, DangerousFunction<CharacterStream, String> valueReader, double group, String description, String documentation, String... aliases) {
+        this(action, valueReader, group, 0, description, documentation, aliases);
     }
 
-    static boolean truthy(CastableValue value) {
-        if (value.getValueAs(BigDecimal.class).isPresent()) {
-            return value.getValueAs(BigDecimal.class).get().compareTo(BigDecimal.ZERO) > 0;
-        } else if (value.getAsString().isPresent()) {
-            return InstructionUtility.TRUTHY.contains(value.getAsString().get());
-        } else if (value.getValueAs(CastableValue[].class).isPresent()) {
-            CastableValue[] array = value.getValueAs(CastableValue[].class).get();
-            int truthy = 0;
-            int falsy = 0;
-            for (CastableValue val : array) {
-                if (InstructionUtility.truthy(val)) {
-                    truthy++;
-                } else {
-                    falsy++;
-                }
-            }
-            return truthy > falsy;
-        }
-        throw new IllegalStateException();
+    public Instruction(DangerousFunction<FunctionContext, State> action, double group, int dangerLevel, String description, String documentation, String... aliases) {
+        this(action, c -> null, group, dangerLevel, description, documentation, aliases);
+    }
+
+    public Instruction(DangerousFunction<FunctionContext, State> action, double group, String description, String documentation, String... aliases) {
+        this(action, c -> null, group, 0, description, documentation, aliases);
+    }
+
+    public int getDangerLevel() {
+        return this.dangerLevel;
     }
 
     public double getGroup() {

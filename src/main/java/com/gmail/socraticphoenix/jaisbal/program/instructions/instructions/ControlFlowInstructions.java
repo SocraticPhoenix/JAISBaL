@@ -50,7 +50,7 @@ public interface ControlFlowInstructions { //Group 3
         BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
         try {
             int i = f.getCurrent();
-            int g = f.getCurrent() + index.intValueExact() - 1;
+            int g = f.getCurrent() + index.intValue() - 1;
             if (i != g) {
                 f.setCurrent(g);
                 return State.JUMPED;
@@ -67,7 +67,7 @@ public interface ControlFlowInstructions { //Group 3
         BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
         try {
             int i = f.getCurrent();
-            int g = index.intValueExact();
+            int g = index.intValue();
             if (i != g) {
                 f.setCurrent(g);
                 return State.JUMPED;
@@ -78,7 +78,6 @@ public interface ControlFlowInstructions { //Group 3
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index", e);
         }
     }, InstructionUtility.number(), 3.02, "jump to instruction ${arg}", "Jumps to the instruction at the given index. This instruction takes one argument, a number (see pushnum). This instruction fails if the argument is not a 32-bit integer", "jumpindex");
-
 
     //Loops, sub group .03
     Instruction FOR_LOOP = new Instruction(f -> {
@@ -158,7 +157,7 @@ public interface ControlFlowInstructions { //Group 3
         } while (InstructionUtility.truthy(val));
         f.setCurrent(end);
         return State.NORMAL;
-    }, 3.03, "start do-while loop", "This instruction functions as a dowhile loop. The dowhile block will run once, regardless of the truthiness of the top value of the stack, and then will continue running so long as the top value of the stack is truthy.  Note that the while loop will not pop off the top value of the stack when checking if it is truthy.", "dowhile");
+    }, 3.03, "start do-while loop", "This instruction functions as a dowhile loop. The dowhile block will run once, regardless of the truthiness of the top value of the stack, and then will continue running so long as the top value of the stack is truthy.  Note that the dowhile loop will not pop off the top value of the stack when checking if it is truthy.", "dowhile");
 
     //Conditionals, sub group .04
     Instruction IF_BLOCK = new Instruction(f -> {
@@ -173,7 +172,7 @@ public interface ControlFlowInstructions { //Group 3
             f.setCurrent(end);
             return State.JUMPED;
         }
-    }, 3.04, "if the top value of the stack is truthy, execute the next block", "Pops the top value of the stack. If a is truthy, run the block (see if). This instruction also opens a new function frame", "ifblock");
+    }, 3.04, "if the top value of the stack is truthy, execute the next block", "Pops the top value of the stack. If a is truthy, run the block (see if).", "ifblock");
     Instruction IF_ELSE_BLOCK = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         int start = f.getCurrent();
@@ -197,7 +196,7 @@ public interface ControlFlowInstructions { //Group 3
             f.setCurrent(falsyEnd);
         }
         return State.NORMAL;
-    }, 3.04, "if the top value of the stack is truthy, execute the next block, otherwise, execute the else block", "Pops the top value of the stack. If a is truthy, run the  if block, otherwise run the else block (see if). This instruction also opens a new function frame", "ifelse");
+    }, 3.04, "if the top value of the stack is truthy, execute the next block, otherwise, execute the else block", "Pops the top value of the stack. If a is truthy, run the  if block, otherwise run the else block (see if).", "ifelse");
     Instruction ELSE = new Instruction(f -> {
         int falsyEnd = f.subsetIndex("else", "end");
         f.setCurrent(falsyEnd);

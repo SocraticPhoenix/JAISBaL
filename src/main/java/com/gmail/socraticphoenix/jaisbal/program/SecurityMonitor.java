@@ -20,32 +20,26 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.program.instructions.util;
+package com.gmail.socraticphoenix.jaisbal.program;
 
 import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
-import com.gmail.socraticphoenix.jaisbal.program.Program;
-import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
-import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
-import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 
-import java.math.BigDecimal;
+public class SecurityMonitor {
+    private int level;
 
-public class AuxiliaryInstruction extends Instruction {
-
-    public AuxiliaryInstruction() {
-        super(f -> {
-            CastableValue value = f.getCurrentArgEasy();
-            Type.NUMBER.checkMatches(value);
-            try {
-                int i = value.getValueAs(BigDecimal.class).get().intValue();
-                return InstructionRegistry.getAuxiliaryInstructions().get(i).getAction().apply(f).deTransmit();
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException(Program.valueToString(value) + " is not an integer index");
-            } catch (IndexOutOfBoundsException e) {
-                throw new JAISBaLExecutionException("No aux_instruction registered for " + Program.valueToString(value));
-            }
-        }, InstructionUtility.number(), -1, "call auxiliary instruction #${arg}", "Calls the auxiliary instruction registered at the specified index. This instruction takes one argument, a number (see pushnum)", "F", "aux");
+    public SecurityMonitor(int level) {
+        this.level = level;
     }
 
+    public void monitor(Instruction instruction) throws JAISBaLExecutionException {
+        int test = instruction.getDangerLevel();
+        if(test >= level) {
+            throw new JAISBaLExecutionException("The security monitor denied execution of instruction \"" + instruction.getMainAlias() + "\" (max danger-level: " + this.level + ", instruction danger-level: " + instruction.getDangerLevel() + ")");
+        }
+    }
+
+    public int getLevel() {
+        return this.level;
+    }
 }

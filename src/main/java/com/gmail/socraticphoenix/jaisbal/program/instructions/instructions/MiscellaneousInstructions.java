@@ -26,6 +26,7 @@ import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.util.InstructionUtility;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.vectorization.VectorizedMonad;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 
 public interface MiscellaneousInstructions { //group 100
@@ -33,10 +34,18 @@ public interface MiscellaneousInstructions { //group 100
         f.getStack().push(CastableValue.of(f.getProgram().getContent()));
         return State.NORMAL;
     }, 100, "load the source code of the program onto the stack", "Pushes the programs source code, as a string, onto the stack", "quine");
-    Instruction NAME = new Instruction(f -> {
+    Instruction EXPLAINED_QUINE = new Instruction(f -> {
+        f.getStack().push(CastableValue.of(f.getProgram().getContent()));
+        return State.NORMAL;
+    }, 100, "load the source code of the program onto the stack, in expanded form", "Pushes the programs source code, in expanded form, as a string, onto the stack", "equine");
+    Instruction MINI_QUINE = new Instruction(f -> {
+        f.getStack().push(CastableValue.of(f.getProgram().minify()));
+        return State.NORMAL;
+    }, 100, "load the source code of the program onto the stack, in mini form", "Pushes the programs source code, in mini form, as a string, onto the stack", "mquine");
+    Instruction NAME = new Instruction(new VectorizedMonad(f -> {
         Program.checkUnderflow(1, f);
         f.getStack().push(InstructionUtility.name(f.getStack().pop()));
         return State.NORMAL;
-    }, 100, "take the top value off the stack, determines its name, and push it", "Determines the name of the top value on the stack. If a is a 32-bit integer, a string representation of it's number name is returned, if a is an array, the name of every value in the array is computed, and pushed as a single array. Otherwise, the string value of a is pushed", "name");
+    }), 100, "take the top value off the stack, determines its name, and push it", "Determines the name of the top value on the stack. If a is a 32-bit integer, a string representation of it's number name is returned, if a is an array, the name of every value in the array is computed, and pushed as a single array. Otherwise, the string value of a is pushed", "name");
 
 }

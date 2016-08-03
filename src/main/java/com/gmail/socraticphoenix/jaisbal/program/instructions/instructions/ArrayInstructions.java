@@ -29,7 +29,11 @@ import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.util.InstructionUtility;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.util.SyntheticFunction;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.vectorization.VectorizedDyadString;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.vectorization.VectorizedMonad;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.vectorization.VectorizedMonadString;
 import com.gmail.socraticphoenix.plasma.collection.PlasmaListUtil;
+import com.gmail.socraticphoenix.plasma.math.PlasmaRandomUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
 
@@ -43,34 +47,34 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         CastableValue index = f.getCurrentArgEasy();
         Type.NUMBER.checkMatches(index);
         try {
-            CastableValue[] array = new CastableValue[index.getValueAs(BigDecimal.class).get().intValueExact()];
+            CastableValue[] array = new CastableValue[index.getValueAs(BigDecimal.class).get().intValue()];
             f.getStack().push(CastableValue.of(array));
         } catch (ArithmeticException e) {
             throw new JAISBaLExecutionException(Program.valueToString(index) + " is not a 32-bit integer index");
         }
         return State.NORMAL;
     }, InstructionUtility.number(), 6.01, "create and push new array with length ${arg}", "Creates a new array with the given length. This instruction takes one argument, a number (see pushnum)", "newarray");
-    Instruction ARRAY_CREATE_STACK = new Instruction(f -> {
+    Instruction ARRAY_CREATE_STACK = new Instruction(new VectorizedMonad(f -> {
         Program.checkUnderflow(1, f);
         CastableValue index = f.getStack().pop();
         Type.NUMBER.checkMatches(index);
         try {
-            CastableValue[] array = new CastableValue[index.getValueAs(BigDecimal.class).get().intValueExact()];
+            CastableValue[] array = new CastableValue[index.getValueAs(BigDecimal.class).get().intValue()];
             f.getStack().push(CastableValue.of(array));
         } catch (ArithmeticException e) {
             throw new JAISBaLExecutionException(Program.valueToString(index) + " is not a 32-bit integer index");
         }
         return State.NORMAL;
-    }, InstructionUtility.number(), 6.01, "create and push new array with length <top value of stack>", "Creates a new array with the length a. This instruction fails if a is not a 32-bit integer index", "snewarray");
-    Instruction ARRAY_LENGTH = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+    }), InstructionUtility.number(), 6.01, "create and push new array with length <top value of stack>", "Creates a new array with the length a. This instruction fails if a is not a 32-bit integer index", "snewarray");
+    Instruction ARRAY_LENGTH = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
         CastableValue value = f.getStack().pop();
         f.getStack().push(value);
         f.getStack().push(CastableValue.of(new BigDecimal(value.getValueAs(CastableValue[].class).get().length)));
         return State.NORMAL;
-    }), 6.01, "push the length of the array onto the stack", "Pushes the length of array a onto the stack. This instruction does not pop of the array. This instruction fails if a is not an array", "arraylength", "alength");
+    })), 6.01, "push the length of the array onto the stack", "Pushes the length of array a onto the stack. This instruction does not pop off the array. This instruction fails if a is not an array", "arraylength", "alength");
 
     //Array register operations, sub group .02
-    Instruction ARRAY_LOAD = new Instruction(f -> {
+    Instruction ARRAY_LOAD = new Instruction(new VectorizedMonadString(f -> {
         Program.checkUnderflow(1, f);
         CastableValue index = f.getCurrentArgEasy();
         CastableValue array = f.getStack().pop();
@@ -78,13 +82,13 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         Type.GENERAL_ARRAY.checkMatches(array);
         try {
             f.getStack().push(array);
-            f.getStack().push(array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValueExact()]);
-        } catch (ArithmeticException e) {
+            f.getStack().push(array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValue()]);
+        } catch (ArithmeticException | IndexOutOfBoundsException e) {
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }, InstructionUtility.number(), 6.02, "load a value from an array, using the top value of the stack as an index", "Loads a value from array a, from the specified index. This instruction does not pop of the array. This instruction takes one argument, a number (see pushnum). This instruction is only succesful if a is an array, and the argument given is a 32-bit integer that is an index of a", "arrayload", "aload");
-    Instruction ARRAY_STORE = new Instruction(f -> {
+    }), InstructionUtility.number(), 6.02, "load a value from an array, using the top value of the stack as an index", "Loads a value from array a, from the specified index. This instruction does not pop off the array. This instruction takes one argument, a number (see pushnum). This instruction is only succesful if a is an array, and the argument given is a 32-bit integer that is an index of a", "arrayload", "aload");
+    Instruction ARRAY_STORE = new Instruction(new VectorizedMonadString(f -> {
         Program.checkUnderflow(2, f);
         CastableValue index = f.getCurrentArgEasy();
         CastableValue value = f.getStack().pop();
@@ -92,15 +96,15 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         Type.NUMBER.checkMatches(index);
         Type.GENERAL_ARRAY.checkMatches(array);
         try {
-            array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValueExact()] = value;
+            array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValue()] = value;
             f.getStack().push(array);
-        } catch (ArithmeticException e) {
+        } catch (ArithmeticException | IndexOutOfBoundsException e) {
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }, InstructionUtility.number(), 6.02, "store the top of the stack at index ${arg} in an array", "Stores value a in array b, at the specified index. This instruction does not pop of the array. This instruction takes on argument, a number (see pushnum). This instruction is only succesful if b is an array, and the argument given is a 32-bit integer that is an index of b", "arraystore", "astore");
+    }), InstructionUtility.number(), 6.02, "store the top of the stack at index ${arg} in an array", "Stores value a in array b, at the specified index. This instruction does not pop off the array. This instruction takes on argument, a number (see pushnum). This instruction is only succesful if b is an array, and the argument given is a 32-bit integer that is an index of b", "arraystore", "astore");
 
-    Instruction ARRAY_LOAD_STACK = new Instruction(f -> {
+    Instruction ARRAY_LOAD_STACK = new Instruction(new VectorizedDyadString(f -> {
         Program.checkUnderflow(2, f);
         CastableValue index = f.getStack().pop();
         CastableValue array = f.getStack().pop();
@@ -108,13 +112,13 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         Type.GENERAL_ARRAY.checkMatches(array);
         try {
             f.getStack().push(array);
-            f.getStack().push(array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValueExact()]);
-        } catch (ArithmeticException e) {
+            f.getStack().push(array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValue()]);
+        } catch (ArithmeticException | IndexOutOfBoundsException e) {
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }, InstructionUtility.number(), 6.02, "load the value at index ${arg} from an array", "Loads a value from array b, at index a. This instruction does not pop of the array. This instruction is only succesful if b is an array and a is a 32-bit integer that is an index in b", "sarrayload", "saload");
-    Instruction ARRAY_STORE_STACK = new Instruction(f -> {
+    }), InstructionUtility.number(), 6.02, "load the value at index ${arg} from an array", "Loads a value from array b, at index a. This instruction does not pop off the array. This instruction is only succesful if b is an array and a is a 32-bit integer that is an index in b", "sarrayload", "saload");
+    Instruction ARRAY_STORE_STACK = new Instruction(new VectorizedDyadString(f -> {
         Program.checkUnderflow(3, f);
         CastableValue index = f.getStack().pop();
         CastableValue value = f.getStack().pop();
@@ -122,28 +126,28 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         Type.NUMBER.checkMatches(index);
         Type.GENERAL_ARRAY.checkMatches(array);
         try {
-            array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValueExact()] = value;
+            array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValue()] = value;
             f.getStack().push(array);
-        } catch (ArithmeticException e) {
+        } catch (ArithmeticException | IndexOutOfBoundsException e) {
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }, InstructionUtility.number(), 6.02, "store the second value in the stack in an array, using the top value of the stack as an index", "Stores value b in array c at index a. This instruction does not pop of the array. This instruction is only succesful if c is an array and a is 32-bit integer that is an index in b", "sarraystore", "sastore");
+    }), InstructionUtility.number(), 6.02, "store the second value in the stack in an array, using the top value of the stack as an index", "Stores value b in array c at index a. This instruction does not pop off the array. This instruction is only succesful if c is an array and a is 32-bit integer that is an index in c", "sarraystore", "sastore");
 
     //List operations, sub group .03
-    Instruction ARRAY_SORT = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+    Instruction ARRAY_SORT = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
         CastableValue[] array = f.getStack().pop().getValueAs(CastableValue[].class).get();
         Arrays.sort(array, InstructionUtility::compare);
         f.getStack().push(CastableValue.of(array));
         return State.NORMAL;
-    }), 6.03, "pop the top value of the stack, sort it, and push it", "Pops the top value off the stack and sorts it from smallest to largest (see compare). This instruction fails if a is not an array", "sort");
-    Instruction ARRAY_SORT_REVERSE = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+    })), 6.03, "pop the top value of the stack, sort it, and push it", "Pops the top value off the stack and sorts it from smallest to largest (see compare). This instruction fails if a is not an array", "sort");
+    Instruction ARRAY_SORT_REVERSE = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
         CastableValue[] array = f.getStack().pop().getValueAs(CastableValue[].class).get();
         Arrays.sort(array, (a, b) -> InstructionUtility.compare(b, a));
         f.getStack().push(CastableValue.of(array));
         return State.NORMAL;
-    }), 6.03, "pop the top value of the stack, sort it, reverse it, and push it", "Pops the top value off the stack and sorts it from largest to smallest (see compare). This instruction fails if a is not an array", "rsort");
-    Instruction ROTATE = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f-> {
+    })), 6.03, "pop the top value of the stack, sort it, reverse it, and push it", "Pops the top value off the stack and sorts it from largest to smallest (see compare). This instruction fails if a is not an array", "rsort");
+    Instruction ROTATE = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
         CastableValue[] array = f.getStack().pop().getValueAs(CastableValue[].class).get();
         CastableValue[] newArray = new CastableValue[array.length];
         for (int i = 0; i < array.length; i++) {
@@ -152,8 +156,8 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         }
         f.getStack().push(CastableValue.of(newArray));
         return State.NORMAL;
-    }), 6.03, "rotate the top value of the stack", "Pops a off the stack, and rotates array a to the right, meaning the last value of array a will become the first, the first the second, etc. This instruction fails if a is not an array", "rotate");
-    Instruction ROTATE_NUMBER = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f-> {
+    })), 6.03, "rotate the top value of the stack", "Pops a off the stack, and rotates array a to the right, meaning the last value of array a will become the first, the first the second, etc. This instruction fails if a is not an array", "rotate");
+    Instruction ROTATE_NUMBER = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
         CastableValue num = f.getCurrentArgEasy();
         Type.NUMBER.checkMatches(num);
         int g = num.getValueAs(BigDecimal.class).get().intValue();
@@ -165,8 +169,8 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         }
         f.getStack().push(CastableValue.of(newArray));
         return State.NORMAL;
-    }), 6.03, "rotate the top value of the stack ${arg} time(s) to the right", "Pops a off the stack, and rotates array a to the right, depending on the argument given. Generally, and array of the form [l(n), l(n - 1), l(n - 2)...] will become [l(n + arg), l(n - 1 + arg), l(n - 2 + arg)...], with values at the end of the array wrapping around to the beginning. This instruction fails if a is not an array.", "rotaten");
-    Instruction ROTATE_NUMBER_STACK = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.GENERAL_ARRAY), f-> {
+    })), 6.03, "rotate the top value of the stack ${arg} time(s) to the right", "Pops a off the stack, and rotates array a to the right, depending on the argument given. Generally, and array of the form [l(n), l(n - 1), l(n - 2)...] will become [l(n + arg), l(n - 1 + arg), l(n - 2 + arg)...], with values at the end of the array wrapping around to the beginning. This instruction fails if a is not an array.", "rotaten");
+    Instruction ROTATE_NUMBER_STACK = new Instruction(new VectorizedDyadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.GENERAL_ARRAY), f -> {
         CastableValue num = f.getStack().pop();
         int g = num.getValueAs(BigDecimal.class).get().intValue();
         CastableValue[] array = f.getStack().pop().getValueAs(CastableValue[].class).get();
@@ -177,14 +181,14 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         }
         f.getStack().push(CastableValue.of(newArray));
         return State.NORMAL;
-    }), 6.03, "rotate the second value of the stack <top value of stack> times", "Pops a and b off the stack, and rotates array b to the right, a times. Generally, and array of the form [l(n), l(n - 1), l(n - 2)...] will become [;(n + a), l(n - 1 + a), l(n - 2 + a)...], with values at the end of the array wrapping around to the beginning. This instruction fails if a is not an array,", "rotatens");
+    })), 6.03, "rotate the second value of the stack <top value of stack> times", "Pops a and b off the stack, and rotates array b to the right, a times. Generally, and array of the form [l(n), l(n - 1), l(n - 2)...] will become [;(n + a), l(n - 1 + a), l(n - 2 + a)...], with values at the end of the array wrapping around to the beginning. This instruction fails if a is not an array,", "rotatens");
     Instruction ARRAY_RANGED = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.NUMBER), f -> {
         try {
             BigInteger a = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigInteger();
             BigInteger b = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigInteger();
             BigInteger min = PlasmaListUtil.getMinimum(new BigInteger[]{a, b});
             BigInteger max = PlasmaListUtil.getMaximum(new BigInteger[]{a, b});
-            int size = max.subtract(min).intValueExact();
+            int size = max.subtract(min).intValue();
             CastableValue[] array = new CastableValue[size];
             for (int i = 0; i < array.length; i++) {
                 array[i] = CastableValue.of(min);
@@ -203,7 +207,7 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             BigInteger b = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigInteger();
             BigInteger min = PlasmaListUtil.getMinimum(new BigInteger[]{a, b});
             BigInteger max = PlasmaListUtil.getMaximum(new BigInteger[]{a, b});
-            int size = max.subtract(min).intValueExact() + 1;
+            int size = max.subtract(min).intValue() + 1;
             CastableValue[] array = new CastableValue[size];
             for (int i = 0; i < array.length; i++) {
                 array[i] = CastableValue.of(min);
@@ -216,8 +220,12 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         }
         return State.NORMAL;
     }), 6.03, "push an array containing all numbers in the range of the two numbers on the top of the stack, inclusively", "Pops a and b off the stack and pushes an array containing the range between them. The range will be 1-incremented from min(a, b) to max(a, b). ", "rangein");
+    Instruction SHUFFLE = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+        f.getStack().push(CastableValue.of(PlasmaRandomUtil.randomize(f.getStack().pop().getValueAs(CastableValue[].class).get())));
+        return State.NORMAL;
+    }),  6.03, "randomly shuffles the elements of the top value of the stack", "Pops the top value of the stack, shuffles the values of array a and pushes the result", "shuffle");
 
-    //Stack <-> array operatoins, sub group .04
+    //Stack <-> array operations, sub group .04
     Instruction ARRAY_WRAP = new Instruction(f -> {
         CastableValue[] array = new CastableValue[f.getStack().size()];
         int ind = array.length - 1;
@@ -233,12 +241,12 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         CastableValue value = f.getStack().pop();
         if (value.getAsString().isPresent()) {
             String[] pieces = value.getAsString().get().split("");
-            for(String piece : pieces) {
+            for (String piece : pieces) {
                 f.getStack().push(CastableValue.of(piece));
             }
         } else if (value.getValueAs(CastableValue[].class).isPresent()) {
             CastableValue[] pieces = value.getValueAs(CastableValue[].class).get();
-            for(CastableValue piece : pieces) {
+            for (CastableValue piece : pieces) {
                 f.getStack().push(piece);
             }
         }
@@ -256,11 +264,24 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
     }, 6.04, "reverse the top value of the stack", "Pops the top value off the stack and reverses it. If the a is a number or string, it will be converted to a string and the order of characters will be reversed. If a is an array, the order of elements will be reversed", "reverse");
 
     //Concatenation, sub group .05
+    Instruction JOIN = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+        CastableValue string = f.getCurrentArgEasy();
+        CastableValue[] values = f.getStack().pop().getValueAs(CastableValue[].class).get();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            builder.append(Program.valueToString(values[i]));
+            if(i < values.length - 1) {
+                builder.append(Program.valueToString(string));
+            }
+        }
+        f.getStack().push(CastableValue.of(builder.toString()));
+        return State.NORMAL;
+    })), InstructionUtility.terminated(), 6.05, "join the elements of the top value of the stack with ${arg}", "Pops the top value of the stack, and joins every element of array a with the given argument as glue. This instruction takes one argument, terminated by '}' (see pushterm)", "join");
     Instruction CONCAT = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(InstructionUtility.concat(f.getStack().pop(), f.getStack().pop()));
         return State.NORMAL;
-    }, 6.05, "concatenate the top two values of the stack", "Concatenates a and b. If a and b are both numbers, both strings, or one of each, they will be converted to strings and concatenate using string concatenation. If a or b is an array, and the other is a non array, the non array will be prepended (if a is non-rray) or appended (if b is non array). If both a and b are arrays, list concatenation will be used to join a and b. This instruction will fail if a and/or b is an array, and a contains a or b, or b contains a or b", "concat", "&+");
+    }, 6.05, "concatenate the top two values of the stack", "Concatenates a and b. If a and b are both numbers, both strings, or one of each, they will be converted to strings and concatenate using string concatenation. If a or b is an array, and the other is a non array, the non array will be prepended (if a is non-array) or appended (if b is non array). If both a and b are arrays, list concatenation will be used to join a and b", "concat", "&+");
     Instruction PUSH_NEW_LINE_CONCAT = new Instruction(f -> {
         f.getStack().push(CastableValue.of(System.lineSeparator()));
         return ArrayInstructions.CONCAT.getAction().apply(f);
@@ -273,6 +294,15 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         f.getStack().push(CastableValue.of("\t"));
         return ArrayInstructions.CONCAT.getAction().apply(f);
     }, 6.05, "push a tab and concatenate", "Pushes a tab and then concatenates the top two values of the stack (see concat)", "concattab");
+    Instruction CONCAT_ALL = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        CastableValue value = f.getStack().pop();
+        while (!f.getStack().isEmpty()) {
+            value = InstructionUtility.concat(value, f.getStack().pop());
+        }
+        return State.NORMAL;
+    }, 6.05, "concatenate the entire stack", "Concatenates the entire stack in the form (((a + b) + c) + d), etc.", "concatall");
+
 
     //Solely string operations, sub group .06
     Instruction SPLIT = new Instruction(f -> {
@@ -296,6 +326,30 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         }
         f.getStack().push(CastableValue.of(array));
         return State.NORMAL;
-    }), 6.06, "split the top value of the stack by the second value on the stack", "Splits a by b, interpreting b as a regex and pushes the array result.", "splits");
-
+    }), 6.06, "split the top value of the stack by the second value on the stack", "Splits a by b, interpreting b as a regex and pushes the array result", "splits");
+    Instruction UPPERCASE = new Instruction(new VectorizedMonad(new SyntheticFunction(PlasmaListUtil.buildList(Type.STRING), f -> {
+        String s = f.getStack().pop().getAsString().get();
+        f.getStack().push(CastableValue.of(s.toUpperCase()));
+        return State.NORMAL;
+    })), 6.06, "convert the top value of the stack to uppercase", "Pops a of the stack, converts every character in it to uppercase, and pushes the result", "toupper");
+    Instruction LOWERCASE = new Instruction(new VectorizedMonad(new SyntheticFunction(PlasmaListUtil.buildList(Type.STRING), f -> {
+        String s = f.getStack().pop().getAsString().get();
+        f.getStack().push(CastableValue.of(s.toLowerCase()));
+        return State.NORMAL;
+    })), 6.06, "convert the top value of the stack to lowercase", "Pops a of the stack, converts every character in it to lowercase, and pushes the result", "tolower");
+    Instruction SWAPCASE = new Instruction(new VectorizedMonad(new SyntheticFunction(PlasmaListUtil.buildList(Type.STRING), f -> {
+        String s = f.getStack().pop().getAsString().get();
+        StringBuilder builder = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            if (Character.isLowerCase(c)) {
+                builder.append(Character.toUpperCase(c));
+            } else if (Character.isUpperCase(c)) {
+                builder.append(Character.isLowerCase(c));
+            } else {
+                builder.append(c);
+            }
+        }
+        f.getStack().push(CastableValue.of(builder.toString()));
+        return State.NORMAL;
+    })), 6.06, "swap the case of each character in the value on the top of the stack", "Pops a of the stack, swaps the case of every character in it, and pushes the result", "toswap");
 }

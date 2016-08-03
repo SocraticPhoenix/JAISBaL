@@ -379,6 +379,12 @@ public interface InstructionUtility {
         };
     }
 
+    static BigInteger greatestCommonFactor(BigInteger a, BigInteger b) {
+        a = a.abs();
+        b = b.abs();
+        return b.equals(BigInteger.ZERO) ? a : InstructionUtility.greatestCommonFactor(b, a.mod(b));
+    }
+
     static DangerousFunction<CharacterStream, String> terminated() {
         return c -> {
             BracketCounter counter = new BracketCounter();
