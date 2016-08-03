@@ -74,7 +74,7 @@ public class Program extends PlasmaObject {
     public static final char[] IGNORE_VERBOSE = {'\r', '\t'};
     public static final char[] IGNORE = {'\n', '\r', '\t'};
     public static final char[] IGNORE_VERBOSE_SPACE = {'\r', '\t', ' '};
-    public static final char[] IGNORE_SPACE = {'\n', '\r', '\t', ' '};
+    public static final char[] IGNORE_SPACE = {' '};
     public static boolean displayPrompts = true;
     private Function main;
     private String content;

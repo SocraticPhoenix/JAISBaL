@@ -20,29 +20,19 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.app.util;
+package com.gmail.socraticphoenix.jaisbal.program;
 
-import com.gmail.socraticphoenix.jaisbal.program.function.Function;
-import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
+public enum State {
+    NORMAL,
+    TRANSMITTING_BREAK,
+    BROKEN,
+    JUMPED;
 
-public interface DangerousConsumer<T> {
-
-    void accept(T t) throws Throwable;
-
-    default DangerousConsumer<T> andThen(DangerousConsumer<? super T> after) {
-        return (T t) -> { accept(t); after.accept(t); };
+    public State deTransmit() {
+        if(this == State.TRANSMITTING_BREAK) {
+            return State.BROKEN;
+        } else {
+            return this;
+        }
     }
-
-    static DangerousConsumer<FunctionContext> of(Function f) {
-        return context -> {
-            f.createContext().run(context.getStack());
-        };
-    }
-
-    static DangerousConsumer<FunctionContext> of(FunctionContext f) {
-        return context -> {
-            f.run(context.getStack());
-        };
-    }
-
 }

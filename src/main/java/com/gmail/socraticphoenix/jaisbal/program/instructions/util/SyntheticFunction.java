@@ -20,33 +20,34 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.program.instructions;
+package com.gmail.socraticphoenix.jaisbal.program.instructions.util;
 
+import com.gmail.socraticphoenix.jaisbal.app.util.DangerousFunction;
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.plasma.collection.PlasmaListUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import java.util.stream.Stream;
 
-public class SyntheticFunction implements DangerousConsumer<FunctionContext> {
+public class SyntheticFunction implements DangerousFunction<FunctionContext, State> {
     private List<Type> parameters;
-    private DangerousConsumer<FunctionContext> consumer;
+    private DangerousFunction<FunctionContext, State> func;
 
-    public SyntheticFunction(List<Type> parameters, DangerousConsumer<FunctionContext> consumer) {
+    public SyntheticFunction(List<Type> parameters, DangerousFunction<FunctionContext, State> func) {
         this.parameters = parameters;
-        this.consumer = consumer;
+        this.func = func;
     }
 
     @Override
-    public void accept(FunctionContext context) throws JAISBaLExecutionException, IOException {
+    public State apply(FunctionContext context) throws Throwable {
         this.validate(context.getStack(), context);
-        this.consumer.accept(context);
+        return this.func.apply(context);
     }
 
     private void validate(Stack<CastableValue> stack, FunctionContext context) throws JAISBaLExecutionException {
@@ -56,18 +57,12 @@ public class SyntheticFunction implements DangerousConsumer<FunctionContext> {
 
         Program.checkUnderflow(this.parameters.size(), context);
 
-        CastableValue[] verified = new CastableValue[this.parameters.size()];
-        int ind = 0;
-        for (int i = this.parameters.size() - 1; i >= 0; i--) {
-            Type param = this.parameters.get(i);
+        List<CastableValue> verified = new ArrayList<>();
+        for(Type param : this.parameters) {
             CastableValue value = stack.pop();
-            if (param.matches(value)) {
-                verified[ind] = value;
-                ind++;
-            } else {
-                throw new JAISBaLExecutionException("Invalid parameter: " + value.getValue().orElse(null) + " cannot be converted to " + param.getName());
-            }
+            param.checkMatches(value);
+            verified.add(value);
         }
-        Stream.of(verified).forEach(stack::push);
+        PlasmaListUtil.reverseList(verified).forEach(stack::push);
     }
 }

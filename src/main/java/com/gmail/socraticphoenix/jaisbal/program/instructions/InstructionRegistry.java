@@ -24,6 +24,16 @@ package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.constants.StandardConstants;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.ArrayInstructions;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.ConditionalInstructions;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.ControlFlowInstructions;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.FundamentalInstructions;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.MathematicalInstructions;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.MiscellaneousInstructions;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.instructions.StackInstructions;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.util.ConstantInstruction;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.util.InstructionUtility;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
 import com.gmail.socraticphoenix.plasma.string.TableFormat;
@@ -33,7 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class InstructionRegistry implements Instructions {
+public class InstructionRegistry {
     private static List<Instruction> accessibleInstructions;
 
     private static List<Instruction> instructions;
@@ -52,124 +62,223 @@ public class InstructionRegistry implements Instructions {
         InstructionRegistry.constants = new ArrayList<>();
         InstructionRegistry.blockStart = new ArrayList<>();
         InstructionRegistry.blockEnd = new ArrayList<>();
-
-        r(new AuxiliaryConstant());
-        r(new AuxiliaryInstruction());
-
-        r(PUSH_NUMBER);
-        r(PUSH_TERMINATED);
-        for (int i = 1; i <= 6; i++) {
-            r(Instructions.push(i));
-        }
-        r(PUSH_NUMBER_OUTPUT);
-        r(PUSH_TERMINATED_OUTPUT);
-        for (int i = 1; i <= 6; i++) {
-            r(Instructions.pushOutput(i));
-        }
-        r(PUSH_NUMBER_OUTPUT_NEWLINE);
-        r(PUSH_TERMINATED_OUTPUT_NEWLINE);
-        for (int i = 1; i <= 6; i++) {
-            r(Instructions.pushOutputNewLine(i));
-        }
-        r(POP);
-        r(POP_ALL);
-        r(SWAP);
-        r(DUPLICATE);
-        r(DUPLICATE_ALL);
-        r(TRIPLICATE);
-        r(TRIPLICATE_ALL);
-        r(STORE);
-        r(STORE_STACK);
-        r(LOAD);
-        r(LOAD_STACK);
-        r(STORE_ALL);
-        r(LOAD_ALL);
-        r(STORE_ALL_LOAD_ALL);
-        r(POP_OUTPUT);
-        r(POP_OUTPUT_NEWLINE);
-        r(POP_OUTPUT_ALL);
-        r(POP_OUTPUT_ALL_NEWLINE);
-        r(NEW_LINE);
-        r(PUSH_NEW_LINE);
-        r(PUSH_NEW_LINE_CONCAT);
-        r(SPACE);
-        r(PUSH_SPACE);
-        r(PUSH_SPACE_CONCAT);
-        r(TAB);
-        r(PUSH_TAB);
-        r(PUSH_TAB_CONCAT);
-        r(MULTIPLY);
-        r(DIVIDE);
-        r(ADD);
-        r(SUBTRACT);
-        r(REVERSE);
-        r(CONCAT);
-        r(SPLIT);
-        r(POW);
-        r(MODULO);
-        r(FLOOR);
-        r(CEIL);
-        r(ROUND);
-        r(SQRT);
-        r(RAND_DECIMAL);
-        r(RAND_INTEGER);
-        r(RAND_INTEGER_BOUNDED);
-        r(RAND_INTEGER_BOUNDED_1);
-        r(RAND_INTEGER_DOUBLE_BOUNDED);
-        r(FOR_LOOP);
-        r(END);
-        r(BREAK);
-        r(ARRAY_SPLIT);
-        r(ARRAY_WRAP);
-        r(ARRAY_CREATE);
-        r(ARRAY_LOAD);
-        r(ARRAY_STORE);
-        r(ARRAY_CREATE_STACK);
-        r(ARRAY_LOAD_STACK);
-        r(ARRAY_STORE_STACK);
-        r(ARRAY_LENGTH);
-        r(ARRAY_SORT);
-        r(ARRAY_SORT_REVERSE);
-        r(ARRAY_RANGED);
-        r(ARRAY_RANGED_INCLUSIVE);
-        r(PUSH_TRUTHY);
-        r(PUSH_FALSY);
-        r(NEGATE);
-        r(IF_TRUTHY);
-        r(IF_FALSY);
-        r(COMPARE);
-        r(EQUAL);
-        r(EQUAL_ALL);
-        r(NOT_EQUAL);
-        r(NOT_EQUAL_ALL);
-        r(GREATER);
-        r(GREATER_ALL);
-        r(LESS);
-        r(LESS_ALL);
-        r(GREATER_EQUAL);
-        r(GREATER_EQUAL_ALL);
-        r(LESS_EQUAL);
-        r(LESS_EQUAL_ALL);
-        r(IF_BLOCK);
-        r(IF_ELSE_BLOCK);
-        r(ELSE);
-        r(SUPER_PUSH);
-        r(RELATIVE_JUMP);
-        r(INDEX_JUMP);
-        r(POP_SPLIT_PUSH);
-        r(QUINE);
-        r(FUNCTION);
-        r(NAME);
-
-
-        rc(CastableValue.of(new BigDecimal("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679")), "pi");
-
-
+        //Block ends and starts
         InstructionRegistry.getBlockStarts().add("for");
         InstructionRegistry.getBlockEnds().add("end");
 
+        InstructionRegistry.getBlockStarts().add("else");
+        InstructionRegistry.getBlockEnds().add("else");
+
         InstructionRegistry.getBlockStarts().add("ifblock");
         InstructionRegistry.getBlockStarts().add("ifelse");
+
+        //-----------------------------------------------------------------------
+        //Instructions, version 1
+        //-----------------------------------------------------------------------
+
+        //Fundamental instructions
+        r(FundamentalInstructions.FUNCTION);
+        r(FundamentalInstructions.AUX_FUNCTION);
+        r(FundamentalInstructions.AUX_CONSTANT);
+
+
+        //Stack instructions, Manipulators
+            //Pushes
+        r(StackInstructions.Manipulators.PUSH_NUMBER);
+        r(StackInstructions.Manipulators.PUSH_TERMINATED);
+        r(StackInstructions.Manipulators.PUSH_NEW_LINE);
+        r(StackInstructions.Manipulators.PUSH_SPACE);
+        r(StackInstructions.Manipulators.PUSH_TAB);
+        r(StackInstructions.Manipulators.PUSH_1_CHAR);
+        r(StackInstructions.Manipulators.PUSH_2_CHAR);
+        r(StackInstructions.Manipulators.PUSH_3_CHAR);
+        r(StackInstructions.Manipulators.PUSH_4_CHAR);
+        r(StackInstructions.Manipulators.PUSH_5_CHAR);
+        r(StackInstructions.Manipulators.PUSH_6_CHAR);
+            //Pops
+        r(StackInstructions.Manipulators.POP);
+        r(StackInstructions.Manipulators.POP_ALL);
+        r(StackInstructions.Manipulators.POP_ALL_BUT_ONE);
+            //Swaps
+        r(StackInstructions.Manipulators.SWAP);
+        r(StackInstructions.Manipulators.SWAP_ALL);
+            //Multipliers
+        r(StackInstructions.Manipulators.DUPLICATE);
+        r(StackInstructions.Manipulators.DUPLICATE_ALL);
+        r(StackInstructions.Manipulators.TRIPLICATE);
+        r(StackInstructions.Manipulators.TRIPLICATE_ALL);
+        r(StackInstructions.Manipulators.DUPLICATE_MANY);
+        r(StackInstructions.Manipulators.DUPLICATE_MANY_STACK);
+            //Register Manipulators
+        r(StackInstructions.Manipulators.STORE);
+        r(StackInstructions.Manipulators.LOAD);
+        r(StackInstructions.Manipulators.STORE_STACK);
+        r(StackInstructions.Manipulators.LOAD_STACK);
+        r(StackInstructions.Manipulators.STORE_ALL);
+        r(StackInstructions.Manipulators.LOAD_ALL);
+        r(StackInstructions.Manipulators.STORE_ALL_LOAD_ALL);
+        //Stack instructions, Outputters
+            //Push, output
+        r(StackInstructions.Outputters.PUSH_NUMBER_OUTPUT);
+        r(StackInstructions.Outputters.PUSH_TERMINATED_OUTPUT);
+        r(StackInstructions.Outputters.NEW_LINE);
+        r(StackInstructions.Outputters.SPACE);
+        r(StackInstructions.Outputters.TAB);
+        r(StackInstructions.Outputters.PUSH_1_OUTPUT);
+        r(StackInstructions.Outputters.PUSH_2_OUTPUT);
+        r(StackInstructions.Outputters.PUSH_3_OUTPUT);
+        r(StackInstructions.Outputters.PUSH_4_OUTPUT);
+        r(StackInstructions.Outputters.PUSH_5_OUTPUT);
+        r(StackInstructions.Outputters.PUSH_6_OUTPUT);
+            //Push, output, ln
+        r(StackInstructions.Outputters.PUSH_NUMBER_OUTPUT_NEWLINE);
+        r(StackInstructions.Outputters.PUSH_TERMINATED_OUTPUT_NEWLINE);
+        r(StackInstructions.Outputters.PUSH_1_OUTPUT_LN);
+        r(StackInstructions.Outputters.PUSH_2_OUTPUT_LN);
+        r(StackInstructions.Outputters.PUSH_3_OUTPUT_LN);
+        r(StackInstructions.Outputters.PUSH_4_OUTPUT_LN);
+        r(StackInstructions.Outputters.PUSH_5_OUTPUT_LN);
+        r(StackInstructions.Outputters.PUSH_6_OUTPUT_LN);
+            //Pop, output
+        r(StackInstructions.Outputters.POP_OUTPUT);
+        r(StackInstructions.Outputters.POP_OUTPUT_ALL);
+        r(StackInstructions.Outputters.POP_OUTPUT_RESTORE_ALL);
+        r(StackInstructions.Outputters.POP_OUTPUT_NEWLINE);
+        r(StackInstructions.Outputters.POP_OUTPUT_ALL_NEWLINE);
+        r(StackInstructions.Outputters.POP_OUTPUT_RESTORE_ALL_NEWLINE);
+
+
+        //Conditionals
+            //Line skippers
+        r(ConditionalInstructions.EQUAL);
+        r(ConditionalInstructions.NOT_EQUAL);
+        r(ConditionalInstructions.GREATER);
+        r(ConditionalInstructions.LESS);
+        r(ConditionalInstructions.GREATER_EQUAL);
+        r(ConditionalInstructions.LESS_EQUAL);
+
+        r(ConditionalInstructions.EQUAL_ALL);
+        r(ConditionalInstructions.NOT_EQUAL_ALL);
+        r(ConditionalInstructions.GREATER_ALL);
+        r(ConditionalInstructions.LESS_ALL);
+        r(ConditionalInstructions.GREATER_EQUAL_ALL);
+        r(ConditionalInstructions.LESS_EQUAL_ALL);
+
+        r(ConditionalInstructions.IF_TRUTHY);
+        r(ConditionalInstructions.IF_FALSEY);
+            //Pushes
+        r(ConditionalInstructions.PUSH_TRUTHY);
+        r(ConditionalInstructions.PUSH_FALSEY);
+        r(ConditionalInstructions.NEGATE);
+        r(ConditionalInstructions.COMPARE);
+
+
+        //Control flow
+            //General
+        r(ControlFlowInstructions.END);
+        r(ControlFlowInstructions.BREAK);
+        r(ControlFlowInstructions.SUPER_PUSH);
+            //Goto
+        r(ControlFlowInstructions.RELATIVE_JUMP);
+        r(ControlFlowInstructions.INDEX_JUMP);
+            //Loops
+        r(ControlFlowInstructions.FOR_LOOP);
+        //r(ControlFlowInstructions.WHILE);
+        //r(ControlFlowInstructions.DO_WHILE);
+            //Conditional blocks
+        r(ControlFlowInstructions.IF_BLOCK);
+        r(ControlFlowInstructions.IF_ELSE_BLOCK);
+        r(ControlFlowInstructions.ELSE);
+
+
+        //Math, Operations
+            //Basic 4
+        r(MathematicalInstructions.Operations.ADD);
+        r(MathematicalInstructions.Operations.SUBTRACT);
+        r(MathematicalInstructions.Operations.MULTIPLY);
+        r(MathematicalInstructions.Operations.DIVIDE);
+            //Other operations
+        r(MathematicalInstructions.Operations.POW);
+        r(MathematicalInstructions.Operations.MODULO);
+        r(MathematicalInstructions.Operations.SQRT);
+            //Rounding operations
+        r(MathematicalInstructions.Operations.FLOOR);
+        r(MathematicalInstructions.Operations.CEIL);
+        r(MathematicalInstructions.Operations.ROUND);
+        //Math, Functions
+            //Randomness
+        r(MathematicalInstructions.Functions.RAND_DECIMAL);
+        r(MathematicalInstructions.Functions.RAND_INTEGER);
+        r(MathematicalInstructions.Functions.RAND_INTEGER_BOUNDED);
+        r(MathematicalInstructions.Functions.RAND_INTEGER_BOUNDED_1);
+        r(MathematicalInstructions.Functions.RAND_INTEGER_DOUBLE_BOUNDED);
+
+
+        //Arrays
+            //Base operations
+        r(ArrayInstructions.ARRAY_CREATE);
+        r(ArrayInstructions.ARRAY_CREATE_STACK);
+        r(ArrayInstructions.ARRAY_LENGTH);
+        r(ArrayInstructions.ARRAY_LOAD);
+        r(ArrayInstructions.ARRAY_STORE);
+        r(ArrayInstructions.ARRAY_LOAD_STACK);
+        r(ArrayInstructions.ARRAY_STORE_STACK);
+            //List operations
+        r(ArrayInstructions.ARRAY_SORT);
+        r(ArrayInstructions.ARRAY_SORT_REVERSE);
+        r(ArrayInstructions.ROTATE);
+        r(ArrayInstructions.ROTATE_NUMBER);
+        r(ArrayInstructions.ROTATE_NUMBER_STACK);
+        r(ArrayInstructions.ARRAY_RANGED);
+        r(ArrayInstructions.ARRAY_RANGED_INCLUSIVE);
+            //Stack and array conversions
+        r(ArrayInstructions.ARRAY_WRAP);
+        r(ArrayInstructions.POP_SPLIT_PUSH);
+        r(ArrayInstructions.REVERSE);
+            //Concatenation
+        r(ArrayInstructions.CONCAT);
+        r(ArrayInstructions.PUSH_NEW_LINE_CONCAT);
+        r(ArrayInstructions.PUSH_SPACE_CONCAT);
+        r(ArrayInstructions.PUSH_TAB_CONCAT);
+            //String operations
+        r(ArrayInstructions.SPLIT);
+        r(ArrayInstructions.SPLIT_STACK);
+
+
+        //Miscellaneous
+        r(MiscellaneousInstructions.QUINE);
+        r(MiscellaneousInstructions.NAME);
+
+        //-----------------------------------------------------------------------
+        //End Of Instructions, version 1
+        //-----------------------------------------------------------------------
+
+
+
+        //-----------------------------------------------------------------------
+        //Constants, version 1
+        //-----------------------------------------------------------------------
+
+        //Constants
+        rc(CastableValue.of(StandardConstants.NEGATIVE_ONE), "negative_one");
+        rc(CastableValue.of(StandardConstants.HALF), "half");
+        rc(CastableValue.of(StandardConstants.FOURTH), "one_quarter");
+        rc(CastableValue.of(StandardConstants.THREE_QUARTER), "three_quarters");
+        rc(CastableValue.of(StandardConstants.TEN), "ten");
+        rc(CastableValue.of(StandardConstants.HUNDRED), "one_hundred");
+        rc(CastableValue.of(StandardConstants.THOUSAND), "one_thousand");
+        rc(CastableValue.of(StandardConstants.PI), "pi");
+        rc(CastableValue.of(StandardConstants.TAU), "tau");
+        rc(CastableValue.of(StandardConstants.E), "natural_base");
+        rc(CastableValue.of(StandardConstants.PHI), "phi");
+
+        for (int i = 4; i <= 100; i++) {
+            rac(CastableValue.of(new BigDecimal("10").pow(i)));
+        }
+
+        //-----------------------------------------------------------------------
+        //End Of Constants, version 1
+        //-----------------------------------------------------------------------
     }
 
     public static void ra(Instruction instruction) {
@@ -181,7 +290,7 @@ public class InstructionRegistry implements Instructions {
     }
 
     public static void rc(CastableValue value, String name) {
-        InstructionRegistry.registerConstant(Instructions.constant(value, name));
+        InstructionRegistry.registerConstant(InstructionUtility.constant(value, name));
     }
 
     public static void rc(Object value, String name) {
@@ -331,19 +440,18 @@ public class InstructionRegistry implements Instructions {
     }
 
     public static TableFormat getConstantsDocumentation() {
-        TableFormat format = new TableFormat("ID", "Main Alias", "All Aliases", "Value", "Explanation", "Specification");
-        for (int i = 0; i < InstructionRegistry.constants.size(); i++) {
-            ConstantInstruction con = InstructionRegistry.constants.get(i);
-            format.addRow(String.valueOf(i), con.getMainAlias(), PlasmaStringUtil.joinIntermediate(", ", con.getAliases().toArray()), Program.valueToString(con.getValue()),  con.getDescription(), con.getDocumentation());
-        }
+        TableFormat format = new TableFormat("ID", "Main Alias", "All Aliases", "Value", "Specification");
+        InstructionRegistry.getConstants().stream().sorted((a, b) -> Double.compare(a.getGroup(), b.getGroup())).forEach(con -> {
+            format.addRow(String.valueOf(con.getId()), con.getMainAlias(), PlasmaStringUtil.joinIntermediate(", ", con.getAliases().toArray()), check(Program.valueToString(con.getValue()), 10), con.getDocumentation());
+        });
         return format;
     }
 
     public static TableFormat getAuxiliaryInstructionsDocumentation() {
-        TableFormat format = new TableFormat("ID", "Main Alias", "All Aliases", "Explanation", "Specification");
+        TableFormat format = new TableFormat("ID", "Specification");
         for (int i = 0; i < InstructionRegistry.auxiliaryInstructions.size(); i++) {
             Instruction aux = InstructionRegistry.auxiliaryInstructions.get(i);
-            format.addRow(String.valueOf(i), aux.getMainAlias(), PlasmaStringUtil.joinIntermediate(", ", aux.getAliases().toArray()), aux.getDescription(), aux.getDocumentation());
+            format.addRow(String.valueOf(i), aux.getDocumentation());
         }
         return format;
     }
@@ -352,14 +460,14 @@ public class InstructionRegistry implements Instructions {
         TableFormat format = new TableFormat("ID", "Value");
         for (int i = 0; i < InstructionRegistry.auxiliaryConstants.size(); i++) {
             CastableValue aux = InstructionRegistry.auxiliaryConstants.get(i);
-            format.addRow(String.valueOf(i), Program.valueToString(aux));
+            format.addRow(String.valueOf(i), check(Program.valueToString(aux), 10));
         }
         return format;
     }
 
     private static TableFormat of(List<Instruction> instructions) {
-        TableFormat format = new TableFormat("ID", "Main Alias", "All Aliases", "Explanation", "Specification");
-        instructions.forEach(i -> format.addRow(String.valueOf(i.getId()), i.getMainAlias(), PlasmaStringUtil.joinIntermediate(", ", i.getAliases().toArray()), i.getDescription(), i.getDocumentation()));
+        TableFormat format = new TableFormat("ID", "Main Alias", "All Aliases", "Specification");
+        instructions.stream().sorted((a, b) -> Double.compare(a.getGroup(), b.getGroup())).forEach(i -> format.addRow(String.valueOf(i.getId()), i.getMainAlias(), PlasmaStringUtil.joinIntermediate(", ", i.getAliases().toArray()), i.getDocumentation()));
         return format;
     }
 
@@ -371,6 +479,13 @@ public class InstructionRegistry implements Instructions {
             InstructionRegistry.accessibleInstructions.addAll(InstructionRegistry.getConstants());
         }
         return InstructionRegistry.accessibleInstructions;
+    }
+
+    public static String check(String s, int i) {
+        if(s.length() > i) {
+            s = s.substring(0, i) + "...";
+        }
+        return s;
     }
 
 }

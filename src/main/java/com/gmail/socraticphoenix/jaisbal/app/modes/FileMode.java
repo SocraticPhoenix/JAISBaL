@@ -23,11 +23,10 @@
 package com.gmail.socraticphoenix.jaisbal.app.modes;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
-import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
 import com.gmail.socraticphoenix.jaisbal.app.util.InSupplier;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.app.util.Terminable;
+import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.plasma.file.PlasmaFileUtil;
 
 import java.io.File;
@@ -39,7 +38,7 @@ import java.util.Map;
 public class FileMode implements DangerousConsumer<Map<String, String>> {
 
     @Override
-    public void accept(Map<String, String> args) throws IOException, JAISBaLExecutionException {
+    public void accept(Map<String, String> args) throws Throwable {
         JAISBaL.setIn(new InSupplier());
 
         if (!args.containsKey("file")) {

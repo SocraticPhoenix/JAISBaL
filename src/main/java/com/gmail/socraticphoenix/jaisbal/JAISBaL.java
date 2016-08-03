@@ -32,7 +32,7 @@ import com.gmail.socraticphoenix.jaisbal.app.util.StringNumberCaster;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharPage;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
-import com.gmail.socraticphoenix.jaisbal.program.instructions.ConstantInstruction;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.util.ConstantInstruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
 import com.gmail.socraticphoenix.plasma.file.jlsc.JLSCException;

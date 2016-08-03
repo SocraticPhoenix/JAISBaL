@@ -20,31 +20,23 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.program.instructions;
+package com.gmail.socraticphoenix.jaisbal.program.instructions.instructions;
 
 import com.gmail.socraticphoenix.jaisbal.program.Program;
-import com.gmail.socraticphoenix.jaisbal.program.Type;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.State;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.util.InstructionUtility;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 
-import java.math.BigDecimal;
-
-public class AuxiliaryInstruction extends Instruction {
-
-    public AuxiliaryInstruction() {
-        super(f -> {
-            Program.checkUnderflow(1, f);
-            CastableValue value = f.getStack().pop();
-            Type.NUMBER.checkMatches(value);
-            try {
-                int i = value.getValueAs(BigDecimal.class).get().intValueExact();
-                InstructionRegistry.getAuxiliaryInstructions().get(i).getAction().accept(f);
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException(Program.valueToString(value) + " is not an integer index");
-            } catch (IndexOutOfBoundsException e) {
-                throw new JAISBaLExecutionException("No aux_instruction registered for " + Program.valueToString(value));
-            }
-        }, Instructions.number(), "call auxiliary instruction #${arg}", "Calls the auxiliary instruction registered at the specified index. This instruction takes one argument, a number (see pushnum)", "F", "aux");
-    }
+public interface MiscellaneousInstructions { //group 100
+    Instruction QUINE = new Instruction(f -> {
+        f.getStack().push(CastableValue.of(f.getProgram().getContent()));
+        return State.NORMAL;
+    }, 100, "load the source code of the program onto the stack", "Pushes the programs source code, as a string, onto the stack", "quine");
+    Instruction NAME = new Instruction(f -> {
+        Program.checkUnderflow(1, f);
+        f.getStack().push(InstructionUtility.name(f.getStack().pop()));
+        return State.NORMAL;
+    }, 100, "take the top value off the stack, determines its name, and push it", "Determines the name of the top value on the stack. If a is a 32-bit integer, a string representation of it's number name is returned, if a is an array, the name of every value in the array is computed, and pushed as a single array. Otherwise, the string value of a is pushed", "name");
 
 }

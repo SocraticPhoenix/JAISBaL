@@ -22,11 +22,12 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.function;
 
+import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.BracketCounter;
@@ -63,12 +64,19 @@ public class Function extends PlasmaObject {
         while (stream.hasNext()) {
             char c = stream.next().get();
             Optional<Instruction> instructionOptional = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.getId() == c).findFirst();
-            if(instructionOptional.isPresent()) {
+            if (instructionOptional.isPresent()) {
                 Instruction instruction = instructionOptional.get();
                 StringBuilder builder = new StringBuilder();
                 builder.append(instruction.getId());
-                String val = instruction.getValueReader().apply(stream);
-                if(val != null && !val.equals("")) {
+                String val = null;
+                try {
+                    val = instruction.getValueReader().apply(stream);
+                } catch (JAISBaLExecutionException e) {
+                    throw e;
+                } catch (Throwable throwable) {
+                    throw new JAISBaLExecutionException("Error while reading value ", throwable);
+                }
+                if (val != null && !val.equals("")) {
                     builder.append(" ").append(val);
                 }
                 instructions.add(builder.toString());
@@ -130,7 +138,7 @@ public class Function extends PlasmaObject {
             }
 
             stream.consumeAll(Program.IGNORE);
-            if(stream.isNext('}')) {
+            if (stream.isNext('}')) {
                 stream.consumeAll('}');
             }
             stream.consumeAll(Program.IGNORE);
@@ -140,7 +148,7 @@ public class Function extends PlasmaObject {
     }
 
     public void parse(boolean verbose) throws JAISBaLExecutionException {
-        if(verbose) {
+        if (verbose) {
             this.instructions = Function.verboseInstructions(this.getContent());
         } else {
             this.instructions = Function.instructions(this.getContent());
@@ -174,8 +182,8 @@ public class Function extends PlasmaObject {
         this.createContext().runAsMain();
     }
 
-    public void run(Stack<CastableValue> parent) throws JAISBaLExecutionException {
-        this.createContext().run(parent);
+    public State run(Stack<CastableValue> parent) throws JAISBaLExecutionException {
+        return this.createContext().run(parent);
     }
 
     public List<Type> getParameters() {

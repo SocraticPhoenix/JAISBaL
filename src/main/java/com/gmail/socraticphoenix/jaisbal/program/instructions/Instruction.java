@@ -22,9 +22,10 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
 import com.gmail.socraticphoenix.jaisbal.app.util.DangerousFunction;
+import com.gmail.socraticphoenix.jaisbal.program.State;
+import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.util.InstructionUtility;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.CharacterStream;
 
@@ -33,14 +34,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Instruction {
-    private DangerousConsumer<FunctionContext> action;
+    public static final Instruction DUMMY = new Instruction(f -> State.NORMAL, c -> null, -1, "", "", "");
+
+    private DangerousFunction<FunctionContext, State> action;
     private DangerousFunction<CharacterStream, String> valueReader;
     private String documentation;
     private String description;
     private List<String> aliases;
     private char id;
+    private double group;
 
-    public Instruction(DangerousConsumer<FunctionContext> action,  DangerousFunction<CharacterStream, String> valueReader, String explanation, String documentation, String... aliases) {
+    public Instruction(DangerousFunction<FunctionContext, State> action, DangerousFunction<CharacterStream, String> valueReader, double group, String explanation, String documentation, String... aliases) {
+        this.group = group;
         this.action = action;
         this.valueReader = valueReader;
         this.aliases = new ArrayList<>();
@@ -48,12 +53,41 @@ public class Instruction {
         this.documentation = documentation;
         this.id = '\0';
         this.aliases = new ArrayList<>();
-        for(String s : aliases) {
+        for (String s : aliases) {
             this.aliases.add(s);
-            if(s.length() == 1 && this.id == '\0') {
+            if (s.length() == 1 && this.id == '\0') {
                 this.id = s.charAt(0);
             }
         }
+    }
+
+    public Instruction(DangerousFunction<FunctionContext, State> action, double group, String description, String documentation, String... aliases) {
+        this(action, c -> null, group, description, documentation, aliases);
+    }
+
+    static boolean truthy(CastableValue value) {
+        if (value.getValueAs(BigDecimal.class).isPresent()) {
+            return value.getValueAs(BigDecimal.class).get().compareTo(BigDecimal.ZERO) > 0;
+        } else if (value.getAsString().isPresent()) {
+            return InstructionUtility.TRUTHY.contains(value.getAsString().get());
+        } else if (value.getValueAs(CastableValue[].class).isPresent()) {
+            CastableValue[] array = value.getValueAs(CastableValue[].class).get();
+            int truthy = 0;
+            int falsy = 0;
+            for (CastableValue val : array) {
+                if (InstructionUtility.truthy(val)) {
+                    truthy++;
+                } else {
+                    falsy++;
+                }
+            }
+            return truthy > falsy;
+        }
+        throw new IllegalStateException();
+    }
+
+    public double getGroup() {
+        return this.group;
     }
 
     public String getDocumentation() {
@@ -62,10 +96,6 @@ public class Instruction {
 
     public String getMainAlias() {
         return this.aliases.stream().sorted((a, b) -> Integer.compare(b.length(), a.length())).findFirst().get();
-    }
-
-    public Instruction(DangerousConsumer<FunctionContext> action, String description, String documentation, String... aliases) {
-        this(action, c -> null, description, documentation, aliases);
     }
 
     public char getId() {
@@ -85,7 +115,7 @@ public class Instruction {
         return this.aliases;
     }
 
-    public DangerousConsumer<FunctionContext> getAction() {
+    public DangerousFunction<FunctionContext, State> getAction() {
         return this.action;
     }
 
@@ -93,31 +123,7 @@ public class Instruction {
         return this.valueReader;
     }
 
-
     public boolean isName(String instruction) {
         return this.aliases.contains(instruction);
-    }
-
-
-
-    static boolean truthy(CastableValue value) {
-        if (value.getValueAs(BigDecimal.class).isPresent()) {
-            return value.getValueAs(BigDecimal.class).get().compareTo(BigDecimal.ZERO) > 0;
-        } else if (value.getAsString().isPresent()) {
-            return Instructions.TRUTHY.contains(value.getAsString().get());
-        } else if (value.getValueAs(CastableValue[].class).isPresent()) {
-            CastableValue[] array = value.getValueAs(CastableValue[].class).get();
-            int truthy = 0;
-            int falsy = 0;
-            for (CastableValue val : array) {
-                if (Instructions.truthy(val)) {
-                    truthy++;
-                } else {
-                    falsy++;
-                }
-            }
-            return truthy > falsy;
-        }
-        throw new IllegalStateException();
     }
 }

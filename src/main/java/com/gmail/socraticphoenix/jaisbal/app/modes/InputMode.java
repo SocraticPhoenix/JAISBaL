@@ -23,14 +23,12 @@
 package com.gmail.socraticphoenix.jaisbal.app.modes;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
-import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
 import com.gmail.socraticphoenix.jaisbal.app.util.InSupplier;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.app.util.Terminable;
+import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.util.Arrays;
@@ -39,7 +37,7 @@ import java.util.Map;
 public class InputMode implements DangerousConsumer<Map<String, String>> {
 
     @Override
-    public void accept(Map<String, String> args) throws JAISBaLExecutionException, IOException {
+    public void accept(Map<String, String> args) throws Throwable {
         JAISBaL.setIn(new InSupplier());
 
         if (!args.containsKey("content")) {

@@ -20,29 +20,24 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.app.util;
+package com.gmail.socraticphoenix.jaisbal.program.instructions.util;
 
-import com.gmail.socraticphoenix.jaisbal.program.function.Function;
-import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
+import com.gmail.socraticphoenix.jaisbal.program.State;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
+import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 
-public interface DangerousConsumer<T> {
+public class ConstantInstruction extends Instruction {
+    private CastableValue value;
 
-    void accept(T t) throws Throwable;
-
-    default DangerousConsumer<T> andThen(DangerousConsumer<? super T> after) {
-        return (T t) -> { accept(t); after.accept(t); };
+    public ConstantInstruction(CastableValue value, String explanation, String documentation, String... aliases) {
+        super(f -> {
+            f.getStack().push(value);
+            return State.NORMAL;
+        }, c -> null, 100, explanation, documentation, aliases);
+        this.value = value;
     }
 
-    static DangerousConsumer<FunctionContext> of(Function f) {
-        return context -> {
-            f.createContext().run(context.getStack());
-        };
+    public CastableValue getValue() {
+        return this.value;
     }
-
-    static DangerousConsumer<FunctionContext> of(FunctionContext f) {
-        return context -> {
-            f.run(context.getStack());
-        };
-    }
-
 }

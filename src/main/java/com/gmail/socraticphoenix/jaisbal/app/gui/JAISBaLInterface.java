@@ -309,11 +309,9 @@ public class JAISBaLInterface {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
-                        String p = program.getText();
                         undo.undo();
-                        while (program.getText().equals("") || p.equals(program.getText())) {
+                        while (program.getText().equals("")) {
                             undo.undo();
-                            p = program.getText();
                         }
                     } catch (CannotUndoException ignore) {
 
@@ -324,11 +322,9 @@ public class JAISBaLInterface {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     try {
-                        String p = program.getText();
                         undo.redo();
-                        while (program.getText().equals("") || p.equals(program.getText())) {
+                        while (program.getText().equals("")) {
                             undo.redo();
-                            p = program.getText();
                         }
                     } catch (CannotRedoException ignore) {
 

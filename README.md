@@ -5,12 +5,7 @@
 JAISBaL is Just Another Interpreted Stack-Based Language, created by me. JAISBaL is meant to be a golfing language for dummies and fanatics alike, and features a verbose and character parsing mode, as well as a minifier and explainer to translate between the two. The JAISBaL interpreter is written in Java, and this repository contains its source code. The JAISBaL grammar specification is fully developed, though not all instructions are defined.
 
 ##This Repository
-I open to all contributions! Please open a pull request or issue. However, if you decide to add an instruction or constant, please do the following:
-
-- Specify whether your new instruction is standard, supplementary, constant, auxiliary, or auxiliary constant
-- Explain why you believe the instruction best fits the given category
-- If it is a pull request, properly define the instruction in the [Instructions](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/Instructions.java) class and properly register it in the [InstructionRegistry](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/InstructionRegistry.java) class.
-- If it is an issue/comment, either define the full instruction behavior, or provide a code snippet defining an [Instruction](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/program/instructions/Instruction.java) or [DangerousConsumer[FunctionContext]](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/util/DangerousConsumer.java)
+I open to all contributions! Please open a pull request or issue if you have a problem, and I'll discuss the matter with you further in the comments.
 
 ##The JAISBaL Command Line Tool
 Arguments for the JAISBaL command line tool are entered in key-value pairs, such as "mode=file" or "action=exec." See the table below for arguments.
@@ -24,7 +19,7 @@ Arguments for the JAISBaL command line tool are entered in key-value pairs, such
 |target-encoding | utf8, jaisbal | defines the target character encoding for mode=file | true (jaisbal assumed) |
 |exec-number| integer | defines the number of times to run the program for action=exec| true (1 assumed) |
 |exec-time| integer | defines the maximum runtime, in milliseconds, of the program for action=exec| true (infinite assumed |
-|input[x] | A common separated list of input| defines the input for the program for action=exec. There can be up to [exec-number] of these arguments, each one specifying the arguments for its given run. Indices start at 0, so input0 defines input for the first run | true |
+|input[x] | A comma separated list of input| defines the input for the program for action=exec. There can be up to [exec-number] of these arguments, each one specifying the arguments for its given run. Indices start at 0, so input0 defines input for the first run | true |
 |action | exec, minify, explain, encode| defines the action the tool should take| false |
 ###Actions
 - exec : executes the program exec-number times, and exits after exec-time milliseconds have passed, or execution is finished
@@ -37,9 +32,6 @@ The JAISBaL GUI provides most of the functionality of the command line tool in a
 
 ###Download
 The JAISBaL command line tool has its entry point in the main [JAISBaL](https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/JAISBaL.java) file, and a compiled version can be found published [here](https://dl.bintray.com/meguy26/Main/com/gmail/socraticphoenix/JAISBaL/)
-
-##Examples
-Examples for the language and the command line tool can be found in the [Examples](https://github.com/SocraticPhoenix/JAISBaL/blob/master/EXAMPLES.md) document
 
 ##File Format
 JAISBaL files have the extension .isbl (interpreted stack based language), and are either in UTF-8 or the JAISBaL character encodings, with JAISBaL being preferred. JAISBaL defines its own character encodings to maximize byte usage, and JAISBaL provides a [java Charset class] (https://github.com/SocraticPhoenix/JAISBaL/blob/master/src/main/java/com/gmail/socraticphoenix/jaisbal/encode/JAISBaLCharset.java) for its encoding.
@@ -85,7 +77,7 @@ hhello world /# assuming h is the character id for print1 #/
 ```
 
 ###Value Parsing
-JAISBaL supports strings, numbers, and arrays. Anything not interpretable as a number or an array becomes a string, and numbers can be converted to strings for instructions or functions that only accept numbers. A number is a valid java [BigDecimal](https://docs.oracle.com/javase/7/docs/api/java/math/BigDecimal.html), and can optionally start with a '-', continue with an arbitrary number of digits, and have an optional decimal part. The "pushnum" instruction will read until a number is terminated, and push that number. A string consists of any sequence of digits, including escaped characters such as `\n`, `\t`, `\}`,`\,`, `\[`, and `\]`. The "pushterm" instruction pushes a value up to the '}' terminating character. Finally, there are arrays. So far, we've only discussed unboxed values, a boxed JAISbaL value is of the form `[<value>]` and they can be nested. An array is simply a list of boxed values, so the an array of the characters in "array" would look like this: `[a][r][r][a][y]`. Furthermore, these boxes can be nested to create array-arrays, like so: `[[a][r][r]][[r][a][y]]`. This is an array of the array "arr" and the array "ray".
+JAISBaL supports strings, numbers, and arrays. Anything not interpretable as a number or an array becomes a string, and numbers can be converted to strings for instructions or functions that only accept strings. A number is a valid java [BigDecimal](https://docs.oracle.com/javase/7/docs/api/java/math/BigDecimal.html), and can optionally start with a '-', continue with an arbitrary number of digits, and have an optional decimal part. The "pushnum" instruction will read until a number is terminated, and push that number. A string consists of any sequence of digits, including escaped characters such as `\n`, `\t`, `\}`,`\,`, `\[`, and `\]`. The "pushterm" instruction pushes a value up to the '}' terminating character. Finally, there are arrays. So far, we've only discussed unboxed values, a boxed JAISbaL value is of the form `[<value>]` and they can be nested. An array is simply a list of boxed values, so the an array of the characters in "array" would look like this: `[a][r][r][a][y]`. Furthermore, these boxes can be nested to create array-arrays, like so: `[[a][r][r]][[r][a][y]]`. This is an array of the array "arr" and the array "ray".
 
 ##The Environment
 ###Function Contexts

@@ -24,6 +24,6 @@ package com.gmail.socraticphoenix.jaisbal.app.util;
 
 public interface DangerousFunction<T, R> {
 
-    R apply(T t) throws JAISBaLExecutionException;
+    R apply(T t) throws Throwable;
 
 }
