@@ -81,7 +81,7 @@ JAISBaL supports strings, numbers, and arrays. Anything not interpretable as a n
 
 ##The Environment
 ###Function Contexts
-Every function in JAISBaL has it's own context. Function contexts each have their own stack, parent stack, and locals. The main function has an empty parent stack. Functions can specify arguments, and these arguments are loaded from the function's parent stack (the stack of it's calling function), into the locals. Loops and if-statements are run by changing the current instruction index of a function context, basically they use goto's. Due to the way running instructions are implemented, as of right now, 'break' will break out of either the current function context, the current loop, or an if-statement, but I'm working to fix this. They should only break out of function contexts and loops - not if-statements. 
+Every function in JAISBaL has it's own context. Function contexts each have their own stack, parent stack, and locals. The main function has an empty parent stack. Functions can specify arguments, and these arguments are loaded from the function's parent stack (the stack of it's calling function), into the locals. Loops and if-statements are run by changing the current instruction index of a function context, basically they use goto's. 
 
 ###Design
 JAISBaL is heavily inspired by the JVM, and has both a stack and variable register. Variables are registered at 64-bit indices, and can be stored and loaded on a whim. JAISBaL is technically statically typed, but most instructions attempt to define behavior for all possible operands. Moreover, numbers are represented as arbitrary precision [BigDecimals](https://docs.oracle.com/javase/7/docs/api/java/math/BigDecimal.html), and can be converted to and from strings.

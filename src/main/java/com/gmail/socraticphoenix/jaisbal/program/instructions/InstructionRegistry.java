@@ -51,6 +51,7 @@ public class InstructionRegistry {
     private static List<ConstantInstruction> constants;
     private static List<Instruction> auxiliaryInstructions;
     private static List<CastableValue> auxiliaryConstants;
+    private static List<String> floofyBlocks;
     private static List<String> blockStart;
     private static List<String> blockEnd;
 
@@ -62,15 +63,20 @@ public class InstructionRegistry {
         InstructionRegistry.constants = new ArrayList<>();
         InstructionRegistry.blockStart = new ArrayList<>();
         InstructionRegistry.blockEnd = new ArrayList<>();
+        InstructionRegistry.floofyBlocks = new ArrayList<>();
         //Block ends and starts
         InstructionRegistry.getBlockStarts().add("for");
+        InstructionRegistry.getBlockStarts().add("while");
+        InstructionRegistry.getBlockStarts().add("dowhile");
+        InstructionRegistry.getBlockStarts().add("ifblock");
+        InstructionRegistry.getBlockStarts().add("ifelse");
+
         InstructionRegistry.getBlockEnds().add("end");
 
         InstructionRegistry.getBlockStarts().add("else");
         InstructionRegistry.getBlockEnds().add("else");
+        InstructionRegistry.getFloofyBlocks().add("else");
 
-        InstructionRegistry.getBlockStarts().add("ifblock");
-        InstructionRegistry.getBlockStarts().add("ifelse");
 
         //-----------------------------------------------------------------------
         //Instructions, version 1
@@ -183,8 +189,8 @@ public class InstructionRegistry {
         r(ControlFlowInstructions.INDEX_JUMP);
             //Loops
         r(ControlFlowInstructions.FOR_LOOP);
-        //r(ControlFlowInstructions.WHILE);
-        //r(ControlFlowInstructions.DO_WHILE);
+        r(ControlFlowInstructions.WHILE);
+        r(ControlFlowInstructions.DO_WHILE);
             //Conditional blocks
         r(ControlFlowInstructions.IF_BLOCK);
         r(ControlFlowInstructions.IF_ELSE_BLOCK);
@@ -488,4 +494,7 @@ public class InstructionRegistry {
         return s;
     }
 
+    public static List<String> getFloofyBlocks() {
+        return floofyBlocks;
+    }
 }

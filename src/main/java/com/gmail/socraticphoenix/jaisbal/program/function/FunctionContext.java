@@ -365,7 +365,17 @@ public class FunctionContext extends PlasmaObject {
 
                     if (entry.isName(begin)) {
                         z++;
-                    } else if (entry.isName(end)) {
+                    }
+
+                    if(InstructionRegistry.getBlockStarts().contains(entry.getMainAlias())) {
+                        z++;
+                    }
+
+                    if (entry.isName(end)) {
+                        z--;
+                    }
+
+                    if(InstructionRegistry.getBlockEnds().contains(entry.getMainAlias())) {
                         z--;
                     }
 

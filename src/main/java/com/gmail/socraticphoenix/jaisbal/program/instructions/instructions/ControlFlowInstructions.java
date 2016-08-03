@@ -123,7 +123,42 @@ public interface ControlFlowInstructions { //Group 3
 
         return State.NORMAL;
     }, 3.03, "start for loop", "This instruction functions as a for loop or a for-each loop. If the top value of the stack is a number, the for block will be run that many times. If the top value of the stack is a string, it will be converted to a character array and run as an array. If the top value of the stack is an array, the for block will be run once for each value in the array, and the current value will be pushed to the stack directly before the block is run.", "for");
-    //while, dowhile planned
+    Instruction WHILE = new Instruction(f -> {
+        int end = f.subsetIndex("while", "end");
+        int start = f.getCurrent();
+        Program.checkUnderflow(1, f);
+        CastableValue val = f.getStack().pop();
+        f.getStack().push(val);
+        while (InstructionUtility.truthy(val)) {
+            State state = f.runSubset(end, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), end - 1));
+            f.setCurrent(start);
+            if (state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
+                return state.deTransmit();
+            }
+            Program.checkUnderflow(1, f);
+            val = f.getStack().pop();
+            f.getStack().push(val);
+        }
+        f.setCurrent(end);
+        return State.NORMAL;
+    }, 3.03, "start while loop", "", "while");
+    Instruction DO_WHILE = new Instruction(f -> {
+        int end = f.subsetIndex("dowhile", "end");
+        int start = f.getCurrent();
+        CastableValue val;
+        do {
+            State state = f.runSubset(end, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), end - 1));
+            f.setCurrent(start);
+            if (state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
+                return state.deTransmit();
+            }
+            Program.checkUnderflow(1, f);
+            val = f.getStack().pop();
+            f.getStack().push(val);
+        } while (InstructionUtility.truthy(val));
+        f.setCurrent(end);
+        return State.NORMAL;
+    }, 3.03, "start do-while loop", "", "dowhile");
 
     //Conditionals, sub group .04
     Instruction IF_BLOCK = new Instruction(f -> {
@@ -143,14 +178,25 @@ public interface ControlFlowInstructions { //Group 3
         Program.checkUnderflow(1, f);
         int start = f.getCurrent();
         int truthyEnd = f.subsetIndex("ifelse", "else");
+        f.setCurrent(truthyEnd + 1);
+        int falsyEnd = f.subsetIndex("else", "end");
+        f.setCurrent(start);
         CastableValue value = f.getStack().pop();
         if (InstructionUtility.truthy(value)) {
-            f.setCurrent(start);
-            return State.NORMAL;
+            State state = f.runSubset(truthyEnd - 1, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), truthyEnd - 1));
+            if(state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
+                return state;
+            }
+            f.setCurrent(falsyEnd);
         } else {
             f.setCurrent(truthyEnd + 1);
-            return State.JUMPED;
+            State state = f.runSubset(falsyEnd, c -> !PlasmaMathUtil.fitsBounds(truthyEnd + 1, c.getCurrent(), falsyEnd));
+            if(state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
+                return state;
+            }
+            f.setCurrent(falsyEnd);
         }
+        return State.NORMAL;
     }, 3.04, "if the top value of the stack is truthy, execute the next block, otherwise, execute the else block", "Pops the top value of the stack. If a is truthy, run the  if block, otherwise run the else block (see if). This instruction also opens a new function frame", "ifelse");
     Instruction ELSE = new Instruction(f -> {
         int falsyEnd = f.subsetIndex("else", "end");

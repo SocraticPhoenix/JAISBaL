@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Function extends PlasmaObject {
     private Program program;
@@ -153,6 +154,7 @@ public class Function extends PlasmaObject {
         } else {
             this.instructions = Function.instructions(this.getContent());
         }
+        this.instructions = this.instructions.stream().filter(s -> !s.replaceAll(" ", "").equals("")).collect(Collectors.toList());
     }
 
     public String explain(int indent) throws JAISBaLExecutionException {
