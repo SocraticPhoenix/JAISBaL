@@ -177,7 +177,7 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         }
         f.getStack().push(CastableValue.of(newArray));
         return State.NORMAL;
-    }), 6.03, "rotate the second value of the stack <top value of stack> times", "Pops a and b off the stack, and rotates array b to the right, a times. Generally, and array of the form [l(n), l(n - 1), l(n - 2)...] will become [;(n + a), l(n - 1 + a), l(n - 2 + a)...], with values at the end of the array wrapping around to the beginning. This instruction fails if a is not an array,", "");
+    }), 6.03, "rotate the second value of the stack <top value of stack> times", "Pops a and b off the stack, and rotates array b to the right, a times. Generally, and array of the form [l(n), l(n - 1), l(n - 2)...] will become [;(n + a), l(n - 1 + a), l(n - 2 + a)...], with values at the end of the array wrapping around to the beginning. This instruction fails if a is not an array,", "rotatens");
     Instruction ARRAY_RANGED = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.NUMBER), f -> {
         try {
             BigInteger a = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigInteger();

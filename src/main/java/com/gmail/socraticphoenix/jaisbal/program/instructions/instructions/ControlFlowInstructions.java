@@ -141,7 +141,7 @@ public interface ControlFlowInstructions { //Group 3
         }
         f.setCurrent(end);
         return State.NORMAL;
-    }, 3.03, "start while loop", "", "while");
+    }, 3.03, "start while loop", "This instruction functions as a while loop. The while block will be run so long as the top value on the stack is truthy. Note that the while loop will not pop off the top value of the stack when checking if it is truthy.", "while");
     Instruction DO_WHILE = new Instruction(f -> {
         int end = f.subsetIndex("dowhile", "end");
         int start = f.getCurrent();
@@ -158,7 +158,7 @@ public interface ControlFlowInstructions { //Group 3
         } while (InstructionUtility.truthy(val));
         f.setCurrent(end);
         return State.NORMAL;
-    }, 3.03, "start do-while loop", "", "dowhile");
+    }, 3.03, "start do-while loop", "This instruction functions as a dowhile loop. The dowhile block will run once, regardless of the truthiness of the top value of the stack, and then will continue running so long as the top value of the stack is truthy.  Note that the while loop will not pop off the top value of the stack when checking if it is truthy.", "dowhile");
 
     //Conditionals, sub group .04
     Instruction IF_BLOCK = new Instruction(f -> {

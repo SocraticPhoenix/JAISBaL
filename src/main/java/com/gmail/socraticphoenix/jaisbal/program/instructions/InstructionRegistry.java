@@ -466,7 +466,7 @@ public class InstructionRegistry {
         TableFormat format = new TableFormat("ID", "Value");
         for (int i = 0; i < InstructionRegistry.auxiliaryConstants.size(); i++) {
             CastableValue aux = InstructionRegistry.auxiliaryConstants.get(i);
-            format.addRow(String.valueOf(i), check(Program.valueToString(aux), 10));
+            format.addRow(String.valueOf(i), Program.valueToString(aux));
         }
         return format;
     }
