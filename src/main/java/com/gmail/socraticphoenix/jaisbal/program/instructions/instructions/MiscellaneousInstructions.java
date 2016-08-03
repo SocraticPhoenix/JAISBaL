@@ -35,7 +35,7 @@ public interface MiscellaneousInstructions { //group 100
         return State.NORMAL;
     }, 100, "load the source code of the program onto the stack", "Pushes the programs source code, as a string, onto the stack", "quine");
     Instruction EXPLAINED_QUINE = new Instruction(f -> {
-        f.getStack().push(CastableValue.of(f.getProgram().getContent()));
+        f.getStack().push(CastableValue.of(f.getProgram().explain()));
         return State.NORMAL;
     }, 100, "load the source code of the program onto the stack, in expanded form", "Pushes the programs source code, in expanded form, as a string, onto the stack", "equine");
     Instruction MINI_QUINE = new Instruction(f -> {

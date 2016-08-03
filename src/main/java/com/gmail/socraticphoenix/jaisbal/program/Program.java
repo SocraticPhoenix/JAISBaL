@@ -192,6 +192,7 @@ public class Program extends PlasmaObject {
     }
 
     public static Program parse(String program) throws StringParseException, JAISBaLExecutionException {
+        String normalContent = program;
         boolean verbose = program.startsWith("#");
         if (verbose) {
             program = program.replaceFirst("#", "");
@@ -218,7 +219,7 @@ public class Program extends PlasmaObject {
 
         CharacterStream s2 = new CharacterStream(main.toString());
         s2.consumeAll(Program.IGNORE);
-        Program p = new Program(Function.parse("main:" + (Type.hasTypeNext(s2) ? "" : "i") + main.toString(), verbose), functions, program, verbose);
+        Program p = new Program(Function.parse("main:" + (Type.hasTypeNext(s2) ? "" : "i") + main.toString(), verbose), functions, normalContent, verbose);
         p.parse();
         p.verify();
         return p;
