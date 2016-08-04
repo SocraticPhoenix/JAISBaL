@@ -74,6 +74,10 @@ public class InstructionRegistry {
         InstructionRegistry.getBlockStarts().add("dowhile");
         InstructionRegistry.getBlockStarts().add("ifblock");
         InstructionRegistry.getBlockStarts().add("ifelse");
+        InstructionRegistry.getBlockStarts().add("case");
+        InstructionRegistry.getBlockStarts().add("caset");
+        InstructionRegistry.getBlockStarts().add("cases");
+
 
         InstructionRegistry.getBlockEnds().add("end");
 
@@ -89,6 +93,8 @@ public class InstructionRegistry {
         //Fundamental instructions
         r(FundamentalInstructions.FUNCTION);
         r(FundamentalInstructions.CHAR_FUNCTION);
+        r(FundamentalInstructions.IMPORT);
+        r(FundamentalInstructions.IMPORT_UTF8);
         r(FundamentalInstructions.AUX_FUNCTION);
         r(FundamentalInstructions.AUX_CONSTANT);
 
@@ -128,6 +134,8 @@ public class InstructionRegistry {
         r(StackInstructions.Manipulators.STORE_ALL);
         r(StackInstructions.Manipulators.LOAD_ALL);
         r(StackInstructions.Manipulators.STORE_ALL_LOAD_ALL);
+        r(StackInstructions.Manipulators.IS_FULL);
+        r(StackInstructions.Manipulators.IS_FULL_STACK);
         //Stack instructions, Outputters
             //Push, output
         r(StackInstructions.Outputters.PUSH_NUMBER_OUTPUT);
@@ -188,6 +196,7 @@ public class InstructionRegistry {
             //General
         r(ControlFlowInstructions.END);
         r(ControlFlowInstructions.BREAK);
+        r(ControlFlowInstructions.RETURN);
         r(ControlFlowInstructions.SUPER_PUSH);
             //Goto
         r(ControlFlowInstructions.RELATIVE_JUMP);
@@ -200,6 +209,9 @@ public class InstructionRegistry {
         r(ControlFlowInstructions.IF_BLOCK);
         r(ControlFlowInstructions.IF_ELSE_BLOCK);
         r(ControlFlowInstructions.ELSE);
+        r(ControlFlowInstructions.CASE_NUMBER);
+        r(ControlFlowInstructions.CASE_TERMINATED);
+        r(ControlFlowInstructions.CASE_STACK);
 
 
         //Math, Operations
@@ -263,6 +275,7 @@ public class InstructionRegistry {
         r(ArrayInstructions.REVERSE);
             //Concatenation
         r(ArrayInstructions.JOIN);
+        r(ArrayInstructions.JOIN_STACK);
         r(ArrayInstructions.CONCAT);
         r(ArrayInstructions.PUSH_NEW_LINE_CONCAT);
         r(ArrayInstructions.PUSH_SPACE_CONCAT);
@@ -274,6 +287,12 @@ public class InstructionRegistry {
         r(ArrayInstructions.UPPERCASE);
         r(ArrayInstructions.LOWERCASE);
         r(ArrayInstructions.SWAPCASE);
+            //String array conversions
+        r(ArrayInstructions.STRING_TO_ARRAY);
+        r(ArrayInstructions.ARRAY_TO_STRING);
+        r(ArrayInstructions.CODEPOINT_TO_CHAR);
+        r(ArrayInstructions.CHAR_TO_CODEPOINT);
+
 
 
         //Miscellaneous
@@ -315,6 +334,21 @@ public class InstructionRegistry {
         rc(CastableValue.of("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "upper_alphabet");
         rc(CastableValue.of("abcdefghijklmnopqrstuvwxyz"), "lower_alphabet");
         rc(CastableValue.of("0123456789"), "digits");
+        rc(CastableValue.of(new BigDecimal(Byte.MIN_VALUE)), "byte_min");
+        rc(CastableValue.of(new BigDecimal(Short.MIN_VALUE)), "short_min");
+        rc(CastableValue.of(new BigDecimal(Integer.MIN_VALUE)), "int_min");
+        rc(CastableValue.of(new BigDecimal(Long.MIN_VALUE)), "long_min");
+        rc(CastableValue.of(new BigDecimal(Double.MIN_VALUE)), "double_min");
+        rc(CastableValue.of(new BigDecimal(Float.MIN_VALUE)), "float_min");
+
+        rc(CastableValue.of(new BigDecimal(Byte.MAX_VALUE)), "byte_max");
+        rc(CastableValue.of(new BigDecimal(Short.MAX_VALUE)), "short_max");
+        rc(CastableValue.of(new BigDecimal(Integer.MAX_VALUE)), "int_max");
+        rc(CastableValue.of(new BigDecimal(Long.MAX_VALUE)), "long_max");
+        rc(CastableValue.of(new BigDecimal(Double.MAX_VALUE)), "double_max");
+        rc(CastableValue.of(new BigDecimal(Float.MAX_VALUE)), "float_max");
+
+
 
         for (int i = 4; i <= 100; i++) {
             CastableValue value = CastableValue.of(BigDecimal.TEN.pow(i));

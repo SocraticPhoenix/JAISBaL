@@ -63,7 +63,7 @@ public class VectorizedDyad implements DangerousFunction<FunctionContext, State>
                     context.getStack().push(vector[i]);
                 }
                 State state = this.function.apply(context);
-                if(state == State.TRANSMITTING_BREAK) {
+                if(state.isTransmit()) {
                     return state;
                 }
 

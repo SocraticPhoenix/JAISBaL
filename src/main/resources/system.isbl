@@ -1,0 +1,7 @@
+#
+(
+hello_world:
+    pushterm Hello\, World!}
+    popoutln
+)
+call hello_world}

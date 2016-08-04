@@ -20,24 +20,13 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.program;
 
-public enum State {
-    NORMAL,
-    TRANSMITTING_BREAK,
-    TRANSMITTING_RETURN,
-    BROKEN,
-    JUMPED;
+import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 
-    public boolean isTransmit() {
-        return this == TRANSMITTING_BREAK || this == TRANSMITTING_RETURN;
+public class Test {
+
+    public static void main(String[] args) {
+
     }
 
-    public State deTransmitBreak() {
-        if(this == State.TRANSMITTING_BREAK) {
-            return State.BROKEN;
-        } else {
-            return this;
-        }
-    }
 }

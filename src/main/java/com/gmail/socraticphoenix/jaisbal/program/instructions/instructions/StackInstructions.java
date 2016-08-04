@@ -29,6 +29,7 @@ import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.util.InstructionUtility;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.util.SyntheticFunction;
 import com.gmail.socraticphoenix.plasma.collection.PlasmaListUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 
@@ -275,7 +276,23 @@ public interface StackInstructions {
             Manipulators.LOAD_ALL.getAction().apply(f);
             return State.NORMAL;
         }, 0.05, "store all values on the stack into variables, then load all variables", "Stores all values and then loads all variables (see loadall and storeall)", "storeloadall");
-
+        Instruction IS_FULL = new Instruction(f -> {
+            CastableValue value = f.getCurrentArgEasy();
+            Type.NUMBER.checkMatches(value);
+            if (f.getLocals().containsKey(value.getValueAs(BigDecimal.class).get().longValue())) {
+                return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+            } else {
+                return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+            }
+        }, InstructionUtility.number(), 0.05, "push truthy if var${arg} is occupied, falsey otherwise", "Pushes a truthy value if the local variable given in the argument is occupied, falsey otherwise. This isntruction takes one argument, a number (see pushnum)", "isfull");
+        Instruction IS_FULL_STACK = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
+            CastableValue value = f.getStack().pop();
+            if (f.getLocals().containsKey(value.getValueAs(BigDecimal.class).get().longValue())) {
+                return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+            } else {
+                return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+            }
+        }), InstructionUtility.number(), 0.05, "push truthy if var<top value of stack> is occupied, falsey otherwise", "Pushes a truthy value if the local variable at index a is occupied, falsey otherwise", "isfulls");
     }
 
     interface Outputters { //Group 1

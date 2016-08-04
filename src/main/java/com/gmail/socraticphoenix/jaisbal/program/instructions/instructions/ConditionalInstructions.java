@@ -234,7 +234,7 @@ public interface ConditionalInstructions { //Group 2
         CastableValue value = f.getStack().pop();
         f.getStack().push(InstructionUtility.negate(value));
         return State.NORMAL;
-    }, 2.02, "negate the top value of the stack", "Pops the top value of the stack and negates it. If the top value of the stack is a number, its sign will be flipped. If the top value of the stack is a truthy string, 'false' will be pushed, or if the top value is a falsey string 'true' will be pushed. If the top value is an array, every value in the array will be negated, and the array will be pushed. If a is an array and contains itself, this instruction will fail.", "!", "negate");
+    }, 2.02, "negate the top value of the stack", "Pops the top value of the stack and negates it. If the top value of the stack is a number, its sign will be flipped (unless the number is 0, in which case 1 will be pushed to maintain boolean negation). If the top value of the stack is a truthy string, 'false' will be pushed, or if the top value is a falsey string 'true' will be pushed. If the top value is an array, every value in the array will be negated, and the array will be pushed. If a is an array and contains itself, this instruction will fail.", "!", "negate");
     Instruction COMPARE = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(CastableValue.of(new BigDecimal(InstructionUtility.compare(f.getStack().pop(), f.getStack().pop()))));

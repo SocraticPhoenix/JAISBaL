@@ -85,8 +85,8 @@ public class Type extends PlasmaObject {
     }
 
 
-    public static CastableValue easyReadValues(CharacterStream stream, Program program) {
-        CastableValue[] values = Type.readValues(stream, program);
+    public static CastableValue easyReadValues(CharacterStream stream) {
+        CastableValue[] values = Type.readValues(stream);
         if (values.length == 1) {
             return values[0];
         } else {
@@ -94,7 +94,7 @@ public class Type extends PlasmaObject {
         }
     }
 
-    public static CastableValue[] readValues(CharacterStream stream, Program program) {
+    public static CastableValue[] readValues(CharacterStream stream) {
         BracketCounter counter = new BracketCounter();
         counter.registerBrackets('[', ']');
 
@@ -113,7 +113,7 @@ public class Type extends PlasmaObject {
                 }
 
                 stream.consume(']');
-                values.add(Type.easyReadValues(new CharacterStream(PlasmaStringUtil.cutFirstChar(s)), program));
+                values.add(Type.easyReadValues(new CharacterStream(PlasmaStringUtil.cutFirstChar(s))));
             }
         } else {
             String v = Program.ESCAPER.deEscape(value);

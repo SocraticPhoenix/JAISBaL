@@ -49,12 +49,21 @@ public class Function extends PlasmaObject {
     private List<String> instructions;
     private List<Type> parameters;
     private boolean implicitInput;
+    private boolean verbose;
 
-    public Function(String name, String content, List<Type> parameters, boolean implicitInput) {
+    public Function(String name, String content, List<Type> parameters, boolean verbose, boolean implicitInput) throws JAISBaLExecutionException {
         this.name = name;
         this.content = content;
         this.parameters = parameters;
         this.implicitInput = implicitInput;
+        this.verbose = verbose;
+        if(this.name.contains(".")) {
+            throw new JAISBaLExecutionException("Function names cannot contain periods");
+        }
+    }
+
+    public boolean isVerbose() {
+        return this.verbose;
     }
 
     public static List<String> instructions(String s) throws JAISBaLExecutionException {
@@ -85,7 +94,7 @@ public class Function extends PlasmaObject {
                 throw new JAISBaLExecutionException("No instructions called " + c);
             }
         }
-        return instructions;
+        return instructions.stream().filter(i -> !i.replaceAll(" ", "").equals("")).collect(Collectors.toList());
     }
 
     public static List<String> verboseInstructions(String s) throws JAISBaLExecutionException {
@@ -96,14 +105,14 @@ public class Function extends PlasmaObject {
             stream.consumeAll('\n');
             stream.consumeAll(' ');
         }
-        return instructions;
+        return instructions.stream().filter(i -> !i.replaceAll(" ", "").equals("")).collect(Collectors.toList());
     }
 
     public static boolean exists(String name) {
         return InstructionRegistry.getAccessibleInstructions().stream().filter(entry -> entry.isName(name)).findFirst().isPresent();
     }
 
-    public static Function parse(String s, boolean verbose) throws StringParseException {
+    public static Function parse(String s, boolean verbose) throws StringParseException, JAISBaLExecutionException {
         CharacterStream stream = new CharacterStream(s);
         if (!stream.hasNext()) {
             throw stream.syntaxError("Expected function");
@@ -144,17 +153,16 @@ public class Function extends PlasmaObject {
             }
             stream.consumeAll(Program.IGNORE);
 
-            return new Function(name, stream.remaining(), parameters, parameters.stream().filter(Type::isImplicit).findFirst().isPresent());
+            return new Function(name, stream.remaining(), parameters, verbose, parameters.stream().filter(Type::isImplicit).findFirst().isPresent());
         }
     }
 
-    public void parse(boolean verbose) throws JAISBaLExecutionException {
-        if (verbose) {
+    public void parse() throws JAISBaLExecutionException {
+        if (this.verbose) {
             this.instructions = Function.verboseInstructions(this.getContent());
         } else {
             this.instructions = Function.instructions(this.getContent());
         }
-        this.instructions = this.instructions.stream().filter(s -> !s.replaceAll(" ", "").equals("")).collect(Collectors.toList());
     }
 
     public String explain(int indent) throws JAISBaLExecutionException {

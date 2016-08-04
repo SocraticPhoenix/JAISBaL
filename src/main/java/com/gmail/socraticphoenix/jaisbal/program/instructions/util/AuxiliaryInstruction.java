@@ -39,7 +39,7 @@ public class AuxiliaryInstruction extends Instruction {
             Type.NUMBER.checkMatches(value);
             try {
                 int i = value.getValueAs(BigDecimal.class).get().intValue();
-                return InstructionRegistry.getAuxiliaryInstructions().get(i).getAction().apply(f).deTransmit();
+                return InstructionRegistry.getAuxiliaryInstructions().get(i).getAction().apply(f).deTransmitBreak();
             } catch (ArithmeticException e) {
                 throw new JAISBaLExecutionException(Program.valueToString(value) + " is not an integer index");
             } catch (IndexOutOfBoundsException e) {

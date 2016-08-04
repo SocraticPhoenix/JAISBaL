@@ -71,7 +71,7 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         f.getStack().push(value);
         f.getStack().push(CastableValue.of(new BigDecimal(value.getValueAs(CastableValue[].class).get().length)));
         return State.NORMAL;
-    })), 6.01, "push the length of the array onto the stack", "Pushes the length of array a onto the stack. This instruction does not pop off the array. This instruction fails if a is not an array", "arraylength", "alength");
+    })), 6.01, "push the length of the array onto the stack", "Pushes the length of array a onto the stack. This instruction does not pop off the array. This instruction fails if a is not an array", "arraylength", "alength", "arrlength");
 
     //Array register operations, sub group .02
     Instruction ARRAY_LOAD = new Instruction(new VectorizedMonadString(f -> {
@@ -87,8 +87,8 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }), InstructionUtility.number(), 6.02, "load a value from an array, using the top value of the stack as an index", "Loads a value from array a, from the specified index. This instruction does not pop off the array. This instruction takes one argument, a number (see pushnum). This instruction is only succesful if a is an array, and the argument given is a 32-bit integer that is an index of a", "arrayload", "aload");
-    Instruction ARRAY_STORE = new Instruction(new VectorizedMonadString(f -> {
+    }), InstructionUtility.number(), 6.02, "load a value from an array at index ${arg}", "Loads a value from array a, from the specified index. This instruction does not pop off the array. This instruction takes one argument, a number (see pushnum). This instruction is only succesful if a is an array, and the argument given is a 32-bit integer that is an index of a", "arrayload", "aload");
+    Instruction ARRAY_STORE = new Instruction(new VectorizedDyadString(f -> {
         Program.checkUnderflow(2, f);
         CastableValue index = f.getCurrentArgEasy();
         CastableValue value = f.getStack().pop();
@@ -117,12 +117,12 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }), InstructionUtility.number(), 6.02, "load the value at index ${arg} from an array", "Loads a value from array b, at index a. This instruction does not pop off the array. This instruction is only succesful if b is an array and a is a 32-bit integer that is an index in b", "sarrayload", "saload");
+    }), InstructionUtility.number(), 6.02, "load the value at index <top value of stack> from the array <second value of stack>", "Loads a value from array b, at index a. This instruction does not pop off the array. This instruction is only succesful if b is an array and a is a 32-bit integer that is an index in b", "sarrayload", "saload");
     Instruction ARRAY_STORE_STACK = new Instruction(new VectorizedDyadString(f -> {
         Program.checkUnderflow(3, f);
         CastableValue index = f.getStack().pop();
-        CastableValue value = f.getStack().pop();
         CastableValue array = f.getStack().pop();
+        CastableValue value = f.getStack().pop();
         Type.NUMBER.checkMatches(index);
         Type.GENERAL_ARRAY.checkMatches(array);
         try {
@@ -132,7 +132,7 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }), InstructionUtility.number(), 6.02, "store the second value in the stack in an array, using the top value of the stack as an index", "Stores value b in array c at index a. This instruction does not pop off the array. This instruction is only succesful if c is an array and a is 32-bit integer that is an index in c", "sarraystore", "sastore");
+    }), InstructionUtility.number(), 6.02, "store the third value of the stack in an array, using the top value of the stack as an index", "Stores value c in array b at index a. This instruction does not pop off the array. This instruction is only succesful if b is an array and a is 32-bit integer that is an index in b", "sarraystore", "sastore");
 
     //List operations, sub group .03
     Instruction ARRAY_SORT = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
@@ -277,6 +277,20 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         f.getStack().push(CastableValue.of(builder.toString()));
         return State.NORMAL;
     })), InstructionUtility.terminated(), 6.05, "join the elements of the top value of the stack with ${arg}", "Pops the top value of the stack, and joins every element of array a with the given argument as glue. This instruction takes one argument, terminated by '}' (see pushterm)", "join");
+    Instruction JOIN_STACK = new Instruction(new VectorizedDyadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.STRING, Type.GENERAL_ARRAY), f -> {
+        CastableValue string = f.getStack().pop();
+        CastableValue[] values = f.getStack().pop().getValueAs(CastableValue[].class).get();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            builder.append(Program.valueToString(values[i]));
+            if(i < values.length - 1) {
+                builder.append(Program.valueToString(string));
+            }
+        }
+        f.getStack().push(CastableValue.of(builder.toString()));
+        return State.NORMAL;
+    })), InstructionUtility.terminated(), 6.05, "join the elements of second value of the stack with <top value of stack>", "Pops the top two value of the stack, and joins every element of array b with the a as glue", "joins");
+
     Instruction CONCAT = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         f.getStack().push(InstructionUtility.concat(f.getStack().pop(), f.getStack().pop()));
@@ -352,4 +366,33 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         f.getStack().push(CastableValue.of(builder.toString()));
         return State.NORMAL;
     })), 6.06, "swap the case of each character in the value on the top of the stack", "Pops a of the stack, swaps the case of every character in it, and pushes the result", "toswap");
+
+    //String array conversion, sub group .07
+    Instruction STRING_TO_ARRAY = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.STRING), f -> {
+        String[] pieces = f.getStack().pop().getAsString().get().split("");
+        CastableValue[] newArray = new CastableValue[pieces.length];
+        for (int i = 0; i < pieces.length; i++) {
+            newArray[i] = CastableValue.of(pieces[i]);
+        }
+        f.getStack().push(CastableValue.of(newArray));
+        return State.NORMAL;
+    }), 6.07, "take the top value of the stack and push it as a character array", "Pops the top value of the stack, and splits it into individual characters, pushing the resulting array. This instruction failes if a is not an array", "string2array");
+    Instruction ARRAY_TO_STRING = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
+        CastableValue[] array = f.getStack().pop().getValueAs(CastableValue[].class).get();
+        StringBuilder builder = new StringBuilder();
+        for(CastableValue value : array) {
+            builder.append(Program.valueToString(value));
+        }
+        f.getStack().push(CastableValue.of(builder.toString()));
+        return State.NORMAL;
+    }), 6.07, "join the elements of the top value of the stack into a string", "Pops the top value of the stack, and joins all of the elements of array a into a single string. This instruction fails if a is not an array", "array2string");
+    Instruction CODEPOINT_TO_CHAR = new Instruction(new VectorizedMonad(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
+        f.getStack().push(CastableValue.of(String.valueOf((char) f.getStack().pop().getValueAs(BigDecimal.class).get().longValue())));
+        return State.NORMAL;
+    })), 6.07, "convert the top value of the stack from a codepoint to a character", "Pops the top value of the stack, and pushes the character referred to by the codepoint a. This instruction fails if a is not a number", "codepoint2char");
+    Instruction CHAR_TO_CODEPOINT = new Instruction(new VectorizedMonad(new SyntheticFunction(PlasmaListUtil.buildList(Type.STRING), f -> {
+        String s = f.getStack().pop().getAsString().get();
+        f.getStack().push(CastableValue.of(new BigDecimal((int) s.length() == 0 ? '\0' : s.charAt(0))));
+        return State.NORMAL;
+    })), 6.07, "convert the top value of the stack from a character to a code", "Pops the top value of the stack, and pushes the codepoint referred to by the character a. If a is an empty string, the null-character code will be pushed, otherwise the first character of a will be used for the conversion. This instruction fails if a is not a string", "char2codepoint");
 }

@@ -28,6 +28,8 @@ import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.util.InstructionUtility;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.util.SyntheticFunction;
+import com.gmail.socraticphoenix.plasma.collection.PlasmaListUtil;
 import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 
@@ -37,6 +39,7 @@ public interface ControlFlowInstructions { //Group 3
     //General instructions, sub group .01
     Instruction END = new Instruction(f -> State.NORMAL, 3.01, "end current language construct", "Ends a loop, if, ifelse, or other statement", "end");
     Instruction BREAK = new Instruction(f -> State.TRANSMITTING_BREAK, 3.01, "break out of the current function frame or loop", "Breaks out of the current function frame or loop", "break");
+    Instruction RETURN = new Instruction(f -> State.TRANSMITTING_RETURN, 3.02, "break out of the current function frame", "Breaks out of the current function frame", "return");
     Instruction SUPER_PUSH = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         f.getParentStack().push(f.getStack().pop());
@@ -90,8 +93,11 @@ public interface ControlFlowInstructions { //Group 3
             BigDecimal cond = val.getValueAs(BigDecimal.class).get();
             while (bd.compareTo(cond) < 0) {
                 State state = f.runSubset(end, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), end));
-                if (state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
-                    return State.BROKEN;
+                if (state.isTransmit() || state == State.JUMPED) {
+                    if (state != State.JUMPED) {
+                        f.setCurrent(end);
+                    }
+                    return state.deTransmitBreak();
                 }
                 f.setCurrent(start);
                 bd = bd.add(BigDecimal.ONE);
@@ -112,8 +118,11 @@ public interface ControlFlowInstructions { //Group 3
             for (CastableValue value : values) {
                 f.getStack().push(value);
                 State state = f.runSubset(end, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), end));
-                if (state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
-                    return state.deTransmit();
+                if (state.isTransmit() || state == State.JUMPED) {
+                    if (state != State.JUMPED) {
+                        f.setCurrent(end);
+                    }
+                    return state.deTransmitBreak();
                 }
                 f.setCurrent(start);
             }
@@ -131,8 +140,11 @@ public interface ControlFlowInstructions { //Group 3
         while (InstructionUtility.truthy(val)) {
             State state = f.runSubset(end, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), end - 1));
             f.setCurrent(start);
-            if (state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
-                return state.deTransmit();
+            if (state.isTransmit() || state == State.JUMPED) {
+                if(state != State.JUMPED) {
+                    f.setCurrent(end);
+                }
+                return state.deTransmitBreak();
             }
             Program.checkUnderflow(1, f);
             val = f.getStack().pop();
@@ -148,8 +160,11 @@ public interface ControlFlowInstructions { //Group 3
         do {
             State state = f.runSubset(end, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), end - 1));
             f.setCurrent(start);
-            if (state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
-                return state.deTransmit();
+            if (state.isTransmit() || state == State.JUMPED) {
+                if(state != State.JUMPED) {
+                    f.setCurrent(end);
+                }
+                return state.deTransmitBreak();
             }
             Program.checkUnderflow(1, f);
             val = f.getStack().pop();
@@ -176,25 +191,30 @@ public interface ControlFlowInstructions { //Group 3
     Instruction IF_ELSE_BLOCK = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         int start = f.getCurrent();
-        int truthyEnd = f.subsetIndex("ifelse", "else");
+        int truthyEnd = f.subsetIndexDubloid("ifelse", "else");
         f.setCurrent(truthyEnd + 1);
-        int falsyEnd = f.subsetIndex("else", "end");
+        int falsyEnd = f.subsetIndexDubloid("else", "end");
         f.setCurrent(start);
         CastableValue value = f.getStack().pop();
         if (InstructionUtility.truthy(value)) {
             State state = f.runSubset(truthyEnd - 1, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), truthyEnd - 1));
-            if(state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
+            if (state.isTransmit() || state == State.JUMPED) {
+                if(state != State.JUMPED) {
+                    f.setCurrent(falsyEnd);
+                }
                 return state;
             }
-            f.setCurrent(falsyEnd);
         } else {
             f.setCurrent(truthyEnd + 1);
             State state = f.runSubset(falsyEnd, c -> !PlasmaMathUtil.fitsBounds(truthyEnd + 1, c.getCurrent(), falsyEnd));
-            if(state == State.TRANSMITTING_BREAK || state == State.JUMPED) {
+            if (state.isTransmit() || state == State.JUMPED) {
+                if(state != State.JUMPED) {
+                    f.setCurrent(falsyEnd);
+                }
                 return state;
             }
-            f.setCurrent(falsyEnd);
         }
+        f.setCurrent(falsyEnd);
         return State.NORMAL;
     }, 3.04, "if the top value of the stack is truthy, execute the next block, otherwise, execute the else block", "Pops the top value of the stack. If a is truthy, run the  if block, otherwise run the else block (see if).", "ifelse");
     Instruction ELSE = new Instruction(f -> {
@@ -202,6 +222,38 @@ public interface ControlFlowInstructions { //Group 3
         f.setCurrent(falsyEnd);
         return State.JUMPED;
     }, 3.04, "end the truthy section of the ifelse block", "The end of an ifelse's if block, and the beginning of it's else block", "else");
-
+    Instruction CASE_NUMBER = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.WILDCARD), f -> {
+        CastableValue stack = f.getStack().pop();
+        CastableValue value = f.getCurrentArgEasy();
+        int end = f.subsetIndex("case", "end");
+        if (InstructionUtility.compare(stack, value) != 0) {
+            f.setCurrent(end);
+            return State.JUMPED;
+        } else {
+            return State.NORMAL;
+        }
+    }), InstructionUtility.number(), 3.04, "if the top of the stack equals ${arg}, execute the case block", "Pops the top value off the stack and checks if it is equal to the given argument. If it is, the case block will be run. This instruction takes one argument, a number", "case");
+    Instruction CASE_TERMINATED = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.WILDCARD), f -> {
+        CastableValue stack = f.getStack().pop();
+        CastableValue value = f.getCurrentArgEasy();
+        int end = f.subsetIndex("caset", "end");
+        if (InstructionUtility.compare(stack, value) != 0) {
+            f.setCurrent(end);
+            return State.JUMPED;
+        } else {
+            return State.NORMAL;
+        }
+    }), InstructionUtility.terminated(), 3.04, "if the top of the stack equals ${arg}, execute the case block", "Pops the top value off the stack and checks if it is equal to the given argument. If it is, the caset block will be run. This instruction takes one argument, terminated by '}' (see pushterm)", "caset");
+    Instruction CASE_STACK = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.WILDCARD, Type.WILDCARD), f -> {
+        CastableValue stack = f.getStack().pop();
+        CastableValue value = f.getStack().pop();
+        int end = f.subsetIndex("caset", "end");
+        if (InstructionUtility.compare(stack, value) != 0) {
+            f.setCurrent(end);
+            return State.JUMPED;
+        } else {
+            return State.NORMAL;
+        }
+    }), 3.04, "if the top two values of the stack are equal, execute the case block", "Pops the top two values off the stack, and if they are equal the cases block will be executed", "cases");
 
 }

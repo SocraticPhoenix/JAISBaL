@@ -46,8 +46,8 @@ public class VectorizedDyadString implements DangerousFunction<FunctionContext, 
             for (int i = 0; i < s.length(); i++) {
                 array[i] = CastableValue.of(String.valueOf(s.charAt(i)));
             }
-            context.getStack().push(bottom);
             context.getStack().push(CastableValue.of(array));
+            context.getStack().push(top);
             State state = this.function.apply(context);
             CastableValue newTop = context.getStack().pop();
             StringBuilder builder = new StringBuilder();

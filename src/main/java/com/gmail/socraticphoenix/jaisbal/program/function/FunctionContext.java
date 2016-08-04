@@ -34,6 +34,7 @@ import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistr
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.base.Triple;
 import com.gmail.socraticphoenix.plasma.collection.PlasmaListUtil;
+import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
 import com.gmail.socraticphoenix.plasma.string.CharacterStream;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
@@ -135,9 +136,9 @@ public class FunctionContext extends PlasmaObject {
                     }
                     if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().isPresent()) {
                         Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().get();
-                        context.currentArg = Type.readValues(new CharacterStream(arg), context.getProgram());
+                        context.currentArg = Type.readValues(new CharacterStream(arg));
                         State state = entry.getAction().apply(context);
-                        if (state == State.TRANSMITTING_BREAK || (state == State.JUMPED && transmitJump.test(context))) {
+                        if (state.isTransmit() || (state == State.JUMPED && transmitJump.test(context))) {
                             return state;
                         }
                     } else {
@@ -168,10 +169,10 @@ public class FunctionContext extends PlasmaObject {
                     }
                     if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().isPresent()) {
                         Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().get();
-                        context.currentArg = Type.readValues(new CharacterStream(arg), context.getProgram());
+                        context.currentArg = Type.readValues(new CharacterStream(arg));
                         State state = entry.getAction().apply(context);
-                        if (state == State.TRANSMITTING_BREAK) {
-                            return state;
+                        if (state.isTransmit()) {
+                            return State.NORMAL;
                         }
                     } else {
                         throw new JAISBaLExecutionException("No applicable instruction found");
@@ -229,8 +230,9 @@ public class FunctionContext extends PlasmaObject {
             builder.append(System.lineSeparator());
         }
         if (!preProcessed.isEmpty()) {
+            int counter = 0;
             for (Triple<Instruction, String, String> piece : preProcessed) {
-                builder.append(piece.getC()).append(PlasmaStringUtil.indent(length - piece.getC().length(), " ")).append(Program.COMMENT_START).append(" ").append(StringFormat.fromString(piece.getA().getDescription()).filler().var("arg", piece.getB()).fill()).append(" ");
+                builder.append(piece.getC()).append(PlasmaStringUtil.indent(length - piece.getC().length(), " ")).append(Program.COMMENT_START).append(" [").append(counter).append("] ").append(StringFormat.fromString(piece.getA().getDescription()).filler().var("arg", piece.getB()).fill()).append(" ");
                 try {
                     if (piece.getA() instanceof AuxiliaryInstruction) {
                         int i = Integer.parseInt(piece.getB());
@@ -246,6 +248,7 @@ public class FunctionContext extends PlasmaObject {
 
                 }
                 builder.append(Program.COMMENT_END).append(System.lineSeparator());
+                counter++;
             }
         }
         return builder.toString();
@@ -355,13 +358,60 @@ public class FunctionContext extends PlasmaObject {
     }
 
     public int subsetIndex(String begin, String end) throws JAISBaLExecutionException {
-        int z = 1;
+        int z = 0;
         int i;
-        for (i = this.current; i < this.instructions.size(); i++) {
+        for (i = this.current - 1; i < this.instructions.size(); i++) {
             String instruction = this.instruction(i);
-            if (Function.exists(instruction)) {
-                if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(instruction)).findFirst().isPresent()) {
-                    Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(instruction)).findFirst().get();
+            String name;
+            String arg;
+            String[] pieces = instruction.split(" ", 2);
+            if (pieces.length == 1) {
+                name = pieces[0];
+                arg = "";
+            } else {
+                name = pieces[0];
+                arg = pieces[1];
+            }
+            if (Function.exists(name)) {
+                if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().isPresent()) {
+                    Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().get();
+
+                    if (entry.isName(begin) || InstructionRegistry.getBlockStarts().contains(entry.getMainAlias())) {
+                        z++;
+                    }
+
+                    if (entry.isName(end) || InstructionRegistry.getBlockEnds().contains(entry.getMainAlias())) {
+                        z--;
+                    }
+
+                    if (z == 0) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return i;
+    }
+
+    public int subsetIndexDubloid(String begin, String end) throws JAISBaLExecutionException {
+        int z = 0;
+        int i;
+        for (i = this.current - 1; i < this.instructions.size(); i++) {
+            String instruction = this.instruction(i);
+            String name;
+            String arg;
+            String[] pieces = instruction.split(" ", 2);
+            if (pieces.length == 1) {
+                name = pieces[0];
+                arg = "";
+            } else {
+                name = pieces[0];
+                arg = pieces[1];
+            }
+            if (Function.exists(name)) {
+                if (InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().isPresent()) {
+                    Instruction entry = InstructionRegistry.getAccessibleInstructions().stream().filter(e -> e.isName(name)).findFirst().get();
 
                     if (entry.isName(begin)) {
                         z++;
@@ -421,7 +471,12 @@ public class FunctionContext extends PlasmaObject {
                     return;
                 }
                 try {
-                    CastableValue value = Type.easyReadValues(new CharacterStream(entered), this.getProgram());
+                    CastableValue value;
+                    if(type.isString() || type.isNumber()) {
+                        value = PlasmaMathUtil.isBigDecimal(entered) ? CastableValue.of(new BigDecimal(entered)) : CastableValue.of(entered);
+                    } else {
+                        value = Type.easyReadValues(new CharacterStream(entered));
+                    }
                     if (type.matches(value)) {
                         params.remove(0);
                         vals.add(value);
@@ -444,13 +499,6 @@ public class FunctionContext extends PlasmaObject {
         } else {
             JAISBaL.getOut().println("Program Terminated");
         }
-    }
-
-    public void runAsSurrogate(FunctionContext context) throws JAISBaLExecutionException {
-        this.stack = context.getStack();
-        this.parent = context.getParentStack();
-        this.running = context.running;
-        FunctionContext.run(this);
     }
 
     public State runSubset(int end, Predicate<FunctionContext> transmitJump) throws JAISBaLExecutionException {
@@ -495,20 +543,18 @@ public class FunctionContext extends PlasmaObject {
     }
 
     public void accept(Stack<CastableValue> parent) throws JAISBaLExecutionException {
-        if (this.getParameters().size() == 0) {
+        if (this.getParameters().size() == 0 || this.getParameters().stream().filter(Type::isImplicit).findFirst().isPresent()) {
             return;
         }
 
         if (parent.size() < this.getParameters().size()) {
             throw new JAISBaLExecutionException("Stack underflow: required at least " + this.getParameters().size() + " parameter(s), but only " + parent.size() + " were/was available on the stack");
         } else {
-            long ind = 0;
             for (int i = this.getParameters().size() - 1; i >= 0; i--) {
                 Type param = this.getParameters().get(i);
                 CastableValue value = parent.pop();
                 if (param.matches(value)) {
-                    this.getLocals().put(ind, value);
-                    ind++;
+                    this.getLocals().put((long) i, value);
                 } else {
                     throw new JAISBaLExecutionException("Invalid parameter: " + value.getValue().orElse(null) + " cannot be converted to " + param.getName());
                 }

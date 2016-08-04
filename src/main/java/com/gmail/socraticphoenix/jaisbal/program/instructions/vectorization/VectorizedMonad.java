@@ -45,7 +45,7 @@ public class VectorizedMonad implements DangerousFunction<FunctionContext, State
             for (int i = 0; i < array.length; i++) {
                 context.getStack().push(array[i]);
                 State state = this.function.apply(context);
-                if(state == State.TRANSMITTING_BREAK) {
+                if(state.isTransmit()) {
                     return state;
                 }
                 Program.checkUnderflow(1, context);
@@ -54,6 +54,7 @@ public class VectorizedMonad implements DangerousFunction<FunctionContext, State
             context.getStack().push(CastableValue.of(newArray));
             return State.NORMAL;
         } else {
+            context.getStack().push(top);
             return this.function.apply(context);
         }
     }

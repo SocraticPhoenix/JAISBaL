@@ -101,10 +101,12 @@ public interface MathematicalInstructions {
             return State.NORMAL;
         }, 4.01, "divide the entire stack", "Divides (((a / b) / c) / d), and so on, so long as there are still values on the stack (see div for a definition of division)", "divall");
         Instruction INCREMENT = new Instruction(f -> {
+            Program.checkUnderflow(1, f);
             f.getStack().push(InstructionUtility.add(f.getStack().pop(), CastableValue.of(BigDecimal.ONE)));
             return State.NORMAL;
         }, 4.01, "increment the top value of the stack", "Takes the top value of the stack and computes (a + 1), and pushes the result", "inc", "++");
         Instruction DECREMENT = new Instruction(f -> {
+            Program.checkUnderflow(1, f);
             f.getStack().push(InstructionUtility.sub(f.getStack().pop(), CastableValue.of(BigDecimal.ONE)));
             return State.NORMAL;
         }, 4.01, "decrement the top value of the stack", "Takes the top value of the stack and computes (a - 1), and pushes the result", "dec", "--");

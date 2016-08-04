@@ -337,7 +337,12 @@ public interface InstructionUtility {
 
     static CastableValue negate(CastableValue value) {
         if (value.getValueAs(BigDecimal.class).isPresent()) {
-            return CastableValue.of(value.getValueAs(BigDecimal.class).get().negate());
+            BigDecimal decimal = value.getValueAs(BigDecimal.class).get();
+            if(decimal.equals(BigDecimal.ZERO)) {
+                return CastableValue.of(BigDecimal.ONE);
+            } else {
+                return CastableValue.of(decimal.negate());
+            }
         } else if (value.getAsString().isPresent()) {
             String s = value.getAsString().get();
             if (InstructionUtility.TRUTHY.contains(s.toLowerCase())) {

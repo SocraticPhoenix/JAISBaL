@@ -40,9 +40,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 public class Program extends PlasmaObject {
@@ -51,6 +53,9 @@ public class Program extends PlasmaObject {
         put(']', ']');
         put('\\', '\\');
         put('}', '}');
+        put('(', '(');
+        put(')', ')');
+        put(',', ',');
     }});
 
     /*
@@ -71,38 +76,43 @@ public class Program extends PlasmaObject {
     public static final String CONTROL_CHARACTERS = ":()[]\\?snai-0123456789.#}, \r\t\n";
     public static final String COMMENT_START = "\\#";
     public static final String COMMENT_END = "#\\";
-    public static final char[] IGNORE_VERBOSE = {'\r', '\t'};
-    public static final char[] IGNORE = {'\n', '\r', '\t'};
-    public static final char[] IGNORE_VERBOSE_SPACE = {'\r', '\t', ' '};
-    public static final char[] IGNORE_SPACE = {' '};
+    public static final char[] IGNORE_VERBOSE = {'\r', '\t', '\0'};
+    public static final char[] IGNORE = {'\n', '\r', '\t', '\0'};
+    public static final char[] IGNORE_VERBOSE_SPACE = {'\r', '\t', '\0', ' '};
+    public static final char[] IGNORE_SPACE = {'\n', '\r', '\t', '\0', ' '};
     public static boolean displayPrompts = true;
     private Function main;
     private String content;
     private Map<String, Function> functions;
-    private Map<String, Function> systemFunctions;
+    private List<String> imported;
     private boolean verbose;
 
-    public Program(Function main, List<Function> functions, String content, boolean verbose) throws JAISBaLExecutionException {
+    public Program(Function main, List<Function> functions, String content, boolean verbose, boolean importSystem) throws JAISBaLExecutionException {
         this.main = main;
+        this.imported = new ArrayList<>();
         this.main.setProgram(this);
-        this.functions = new HashMap<>();
-        this.systemFunctions = new HashMap<>();
-        Program.applyMainFunctions(this.systemFunctions);
+        this.functions = new LinkedHashMap<>();
+        if (functions.stream().filter(f -> f.getName().equals("main")).findFirst().isPresent()) {
+            throw new JAISBaLExecutionException("main is a reserved function name");
+        }
         functions.forEach(f -> {
             this.functions.put(f.getName(), f);
             f.setProgram(this);
         });
+        this.functions.put("main", main);
         this.content = content;
         this.verbose = verbose;
+        if (importSystem) {
+            try {
+                this.$import("system", new String(PlasmaFileUtil.getResourceBytes("system.isbl"), StandardCharsets.UTF_8), false);
+            } catch (Throwable e) {
+                throw new JAISBaLExecutionException("Error while importing system library", e);
+            }
+        }
     }
 
-    public static void applyMainFunctions(Map<String, Function> functions) throws JAISBaLExecutionException {
-        try {
-            String piece = new String(PlasmaFileUtil.getResourceBytes("library.isbl"), StandardCharsets.UTF_8);
-            Program.parseFunctions(new CharacterStream(piece), true).stream().map(f -> Function.parse(f, true)).forEach(function -> functions.put(function.getName(), function));
-        } catch (Throwable e) {
-            throw new JAISBaLExecutionException("Unable to load library.isbl", e);
-        }
+    public Program(Function main, List<Function> functions, String content, boolean verbose) throws JAISBaLExecutionException {
+        this(main, functions, content, verbose, true);
     }
 
     public static String valueToString(CastableValue value) {
@@ -117,7 +127,7 @@ public class Program extends PlasmaObject {
                     JAISBaL.getOut().print("Enter a " + type.getName() + " > ");
                     String entered = JAISBaL.getIn().get();
                     try {
-                        CastableValue value = Type.easyReadValues(new CharacterStream(entered), context.getProgram());
+                        CastableValue value = Type.easyReadValues(new CharacterStream(entered));
                         if (type.matches(value)) {
                             context.getStack().push(value);
                         } else {
@@ -163,9 +173,10 @@ public class Program extends PlasmaObject {
 
     public static List<String> parseFunctions(CharacterStream stream, boolean verbose) {
         List<String> functions = new ArrayList<>();
-        stream.consumeAll(Program.IGNORE);
+        stream.consumeAll(Program.IGNORE_SPACE);
         if (stream.isNext('(')) {
             stream.consume('(');
+            stream.consumeAll(Program.IGNORE_SPACE);
             BracketCounter counter = new BracketCounter();
             counter.registerBrackets('[', ']');
             while (stream.hasNext()) {
@@ -173,6 +184,7 @@ public class Program extends PlasmaObject {
                 functions.add(Program.clean(s, verbose));
                 if (stream.isNext(')')) {
                     stream.consume(')');
+                    stream.consumeAll(Program.IGNORE_SPACE);
                     break;
                 } else {
                     stream.consumeAll(',');
@@ -192,6 +204,10 @@ public class Program extends PlasmaObject {
     }
 
     public static Program parse(String program) throws StringParseException, JAISBaLExecutionException {
+        return Program.parse(program, true);
+    }
+
+    public static Program parse(String program, boolean importSystem) throws StringParseException, JAISBaLExecutionException {
         String normalContent = program;
         boolean verbose = program.startsWith("#");
         if (verbose) {
@@ -201,7 +217,10 @@ public class Program extends PlasmaObject {
 
         CharacterStream stream = new CharacterStream(program);
         stream.consumeAll(verbose ? Program.IGNORE_VERBOSE_SPACE : Program.IGNORE_SPACE);
-        List<Function> functions = Program.parseFunctions(stream, verbose).stream().map(f -> Function.parse(f, verbose)).collect(Collectors.toList());
+        List<Function> functions = new ArrayList<>();
+        for (String f : Program.parseFunctions(stream, verbose)) {
+            functions.add(Function.parse(f, verbose));
+        }
         StringBuilder main = new StringBuilder();
         BracketCounter counter = new BracketCounter();
         counter.registerBrackets('[', ']');
@@ -219,10 +238,51 @@ public class Program extends PlasmaObject {
 
         CharacterStream s2 = new CharacterStream(main.toString());
         s2.consumeAll(Program.IGNORE);
-        Program p = new Program(Function.parse("main:" + (Type.hasTypeNext(s2) ? "" : "i") + main.toString(), verbose), functions, normalContent, verbose);
+        Program p = new Program(Function.parse("main:" + (Type.hasTypeNext(s2) ? "" : "i") + main.toString(), verbose), functions, normalContent, verbose, importSystem);
         p.parse();
         p.verify();
+        p.prep();
         return p;
+    }
+
+    public boolean isVerbose() {
+        return this.verbose;
+    }
+
+    public void $import(String name, String content) throws JAISBaLExecutionException {
+        this.$import(name, content, true);
+    }
+
+    public List<String> getImported() {
+        return this.imported;
+    }
+
+    public void $import(String name, String content, boolean importSystem) throws JAISBaLExecutionException {
+        if (!this.imported.contains(name)) {
+            try {
+                Program parsed = Program.parse(content, importSystem);
+                this.functions.put(name + ".main", parsed.getMain());
+                parsed.getFunctions().entrySet().forEach(f -> this.functions.put(name + "." + f.getKey(), f.getValue()));
+                this.imported.add(name);
+            } catch (Throwable e) {
+                throw new JAISBaLExecutionException("Error while importing \"" + name + "\"", e);
+            }
+        }
+    }
+
+    public void prep() throws JAISBaLExecutionException {
+        if (this.functions.containsKey("prep")) {
+            Function function = this.functions.get("prep");
+            if (function.getParameters().size() == 0) {
+                function.run(new Stack<>());
+            } else {
+                throw new JAISBaLExecutionException("prep method may not have arguments");
+            }
+        }
+    }
+
+    public Map<String, Function> getFunctions() {
+        return this.functions;
     }
 
     public void verify() throws JAISBaLExecutionException {
@@ -240,9 +300,9 @@ public class Program extends PlasmaObject {
     public String explain() throws JAISBaLExecutionException {
         StringBuilder builder = new StringBuilder();
         builder.append("# ").append(Program.COMMENT_START).append(" enable verbose parsing ").append(Program.COMMENT_END).append(System.lineSeparator());
-        if (!this.functions.isEmpty()) {
+        if (!this.functions.entrySet().stream().filter(e -> !e.getKey().contains(".")).filter(e -> !e.getValue().getName().equals("main")).map(Map.Entry::getValue).collect(Collectors.toList()).isEmpty()) {
             builder.append("(").append(System.lineSeparator());
-            List<Function> functions = this.functions.values().stream().collect(Collectors.toList());
+            List<Function> functions = this.functions.entrySet().stream().filter(e -> !e.getKey().contains(".")).filter(e -> !e.getValue().getName().equals("main")).map(Map.Entry::getValue).collect(Collectors.toList());
             for (int i = 0; i < functions.size(); i++) {
                 Function f = functions.get(i);
                 builder.append(f.getName()).append(":").append(System.lineSeparator()).append(f.explain(1));
@@ -258,9 +318,9 @@ public class Program extends PlasmaObject {
 
     public String minify() throws JAISBaLExecutionException {
         StringBuilder builder = new StringBuilder();
-        if (!this.functions.isEmpty()) {
+        if (!this.functions.entrySet().stream().filter(e -> !e.getKey().contains(".")).filter(e -> !e.getValue().getName().equals("main")).map(Map.Entry::getValue).collect(Collectors.toList()).isEmpty()) {
             builder.append("(");
-            List<Function> functions = this.functions.values().stream().collect(Collectors.toList());
+            List<Function> functions = this.functions.entrySet().stream().filter(e -> !e.getKey().contains(".")).filter(e -> !e.getValue().getName().equals("main")).map(Map.Entry::getValue).collect(Collectors.toList());
             for (int i = 0; i < functions.size(); i++) {
                 Function f = functions.get(i);
                 builder.append(f.getName()).append(f.getName().length() == 1 ? "" : ":").append(f.minify(false));
@@ -275,9 +335,9 @@ public class Program extends PlasmaObject {
     }
 
     public void parse() throws JAISBaLExecutionException {
-        this.main.parse(this.verbose);
+        this.main.parse();
         for (Function f : this.functions.values()) {
-            f.parse(this.verbose);
+            f.parse();
         }
     }
 
@@ -293,12 +353,9 @@ public class Program extends PlasmaObject {
         return this.main;
     }
 
-
     public Optional<Function> getFunction(String name) {
         if (this.functions.containsKey(name)) {
             return Optional.of(this.functions.get(name));
-        } else if (this.systemFunctions.containsKey(name)) {
-            return Optional.of(this.systemFunctions.get(name));
         } else {
             return Optional.empty();
         }

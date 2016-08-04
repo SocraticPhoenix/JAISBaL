@@ -28,7 +28,10 @@ import com.gmail.socraticphoenix.jaisbal.app.util.LoopedSupplier;
 import com.gmail.socraticphoenix.jaisbal.app.util.Terminable;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
+import com.gmail.socraticphoenix.jaisbal.program.SecurityMonitor;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
+import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
+import com.gmail.socraticphoenix.plasma.file.ByteBuilder;
 import com.gmail.socraticphoenix.plasma.file.stream.TextScreenOutputStream;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
 import com.gmail.socraticphoenix.plasma.string.StringParseException;
@@ -44,6 +47,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -56,13 +60,12 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
@@ -93,6 +96,8 @@ public class JAISBaLInterface {
     private JButton forceStopButton;
     private JButton byteInfoButton;
     private JButton parseButton;
+    private JSlider levelSlider;
+    private JLabel level;
     private Font font;
 
     private JFrame frame;
@@ -144,9 +149,43 @@ public class JAISBaLInterface {
             this.supplier = new LoopedSupplier();
             JAISBaL.setIn(this.supplier);
 
+            this.level.setText(String.valueOf(InstructionRegistry.getMonitor().getLevel()));
+            this.levelSlider.setMaximum(Math.max(100, InstructionRegistry.getMonitor().getLevel()));
+            this.levelSlider.setValue(InstructionRegistry.getMonitor().getLevel());
+            this.levelSlider.addChangeListener(e -> {
+                InstructionRegistry.setMonitor(new SecurityMonitor(this.levelSlider.getValue()));
+                this.levelSlider.setMaximum(Math.max(100, InstructionRegistry.getMonitor().getLevel()));
+                this.level.setText(String.valueOf(InstructionRegistry.getMonitor().getLevel()));
+            });
             this.input.addKeyListener((KeyReleasedListener) e -> {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     this.input();
+                }
+            });
+            this.program.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyTyped(KeyEvent e) {
+                    char c = e.getKeyChar();
+                    if (c == '\t') {
+                        e.consume();
+                        program.insert(PlasmaStringUtil.indent(4, " "), program.getCaretPosition());
+                    }
+                }
+
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    char c = e.getKeyChar();
+                    if (c == '\t') {
+                        e.consume();
+                    }
+                }
+
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    char c = e.getKeyChar();
+                    if (c == '\t') {
+                        e.consume();
+                    }
                 }
             });
             this.openButton.addActionListener(e -> {
@@ -158,14 +197,13 @@ public class JAISBaLInterface {
                 } else {
                     Charset encoding = JAISBaLCharset.get(s);
                     try {
-                        InputStreamReader reader = new InputStreamReader(new FileInputStream(file), encoding);
-                        StringBuilder content = new StringBuilder();
+                        FileInputStream stream = new FileInputStream(file);
+                        ByteBuilder builder = new ByteBuilder();
                         int i;
-                        while ((i = reader.read()) > -1) {
-                            content.append((char) i);
+                        while ((i = stream.read()) > -1) {
+                            builder.append((byte) i);
                         }
-                        reader.close();
-                        program.setText(content.toString());
+                        this.program.setText(new String(builder.toBytes(), encoding));
                     } catch (IOException e1) {
                         JAISBaL.getOut().println("Loading failed");
                         JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
@@ -265,9 +303,10 @@ public class JAISBaLInterface {
                     Charset encoding = JAISBaLCharset.get(s);
                     if (encoding.newEncoder().canEncode(prog)) {
                         try {
-                            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), encoding);
-                            writer.write(prog);
-                            writer.close();
+                            FileOutputStream stream = new FileOutputStream(file);
+                            byte[] pieces = prog.getBytes(encoding);
+                            stream.write(pieces);
+                            stream.close();
                             JAISBaL.getOut().println("Successfully saved file");
                         } catch (IOException e1) {
                             JAISBaL.getOut().println("Saving failed");
@@ -367,7 +406,6 @@ public class JAISBaLInterface {
      * >>> IMPORTANT!! <<<
      * DO NOT edit this method OR call it in your code!
      *
-     * @noinspection ALL
      */
     private void $$$setupUI$$$() {
         createUIComponents();
@@ -401,18 +439,29 @@ public class JAISBaLInterface {
         panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel1.add(panel2, new GridConstraints(9, 1, 6, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JPanel panel3 = new JPanel();
-        panel3.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
-        panel2.add(panel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        panel3.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel2.add(panel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         panel3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null));
         minifyButton = new JButton();
         minifyButton.setText("Minify");
-        panel3.add(minifyButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel3.add(minifyButton, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         explainButton = new JButton();
         explainButton.setText("Explain");
-        panel3.add(explainButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel3.add(explainButton, new GridConstraints(1, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         parseButton = new JButton();
         parseButton.setText("Parse");
-        panel3.add(parseButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel3.add(parseButton, new GridConstraints(2, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        levelSlider = new JSlider();
+        levelSlider.setPaintLabels(false);
+        levelSlider.setPaintTicks(false);
+        levelSlider.setSnapToTicks(true);
+        panel3.add(levelSlider, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        level = new JLabel();
+        level.setText("100");
+        panel3.add(level, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label5 = new JLabel();
+        label5.setText("Security Level:");
+        panel3.add(label5, new GridConstraints(3, 0, 2, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel4 = new JPanel();
         panel4.setLayout(new GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel2.add(panel4, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
@@ -438,24 +487,24 @@ public class JAISBaLInterface {
         panel4.add(encoding, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         file = new JTextField();
         panel4.add(file, new GridConstraints(7, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        final JLabel label5 = new JLabel();
-        label5.setText("File:");
-        panel4.add(label5, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label6 = new JLabel();
-        label6.setText("Encoding:");
-        panel4.add(label6, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        label6.setText("File:");
+        panel4.add(label6, new GridConstraints(7, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label7 = new JLabel();
-        label7.setText("Program:");
-        panel1.add(label7, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        label7.setText("Encoding:");
+        panel4.add(label7, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label8 = new JLabel();
-        label8.setText("Output:");
-        panel1.add(label8, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        label8.setText("Program:");
+        panel1.add(label8, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label9 = new JLabel();
-        label9.setText("Input:");
-        panel1.add(label9, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        label9.setText("Output:");
+        panel1.add(label9, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label10 = new JLabel();
-        label10.setText("Actions:");
-        panel1.add(label10, new GridConstraints(8, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        label10.setText("Input:");
+        panel1.add(label10, new GridConstraints(6, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label11 = new JLabel();
+        label11.setText("Actions:");
+        panel1.add(label11, new GridConstraints(8, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**
