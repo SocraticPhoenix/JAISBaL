@@ -114,5 +114,5 @@ public interface InputOutputInstructions { //group 0, non-standard
             throw new JAISBaLExecutionException("Invalid value: unknown url protocol: " + url.getProtocol());
         }
         return State.NORMAL;
-    }), 0.01, 30, "posts the second value of the stack to the url on the top of the stack", "Pops a string off the stack and posts b to it", "upost");
+    }), 0.01, 30, "posts the second value of the stack to the url on the top of the stack", "Pops a string off the stack, converts it to a URL, and posts b to it", "upost");
 }
