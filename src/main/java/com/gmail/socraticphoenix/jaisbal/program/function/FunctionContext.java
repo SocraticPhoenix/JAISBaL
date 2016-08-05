@@ -117,8 +117,14 @@ public class FunctionContext extends PlasmaObject {
             }
             builder.append("]");
         } else {
-            boolean str = !value.getValueAs(BigDecimal.class).isPresent();
-            builder.append(str ? String.valueOf(value.getValue().orElse(null)) : value.getValueAs(BigDecimal.class).get().toPlainString());
+            Object val = value.getValue().get();
+            if(val instanceof String) {
+                builder.append((String) val);
+            } else if (val instanceof BigDecimal) {
+                builder.append(((BigDecimal) val).toPlainString());
+            } else {
+                builder.append(val.toString());
+            }
         }
         return builder.toString();
     }

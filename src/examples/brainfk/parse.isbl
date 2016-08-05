@@ -1,0 +1,154 @@
+# \# enable verbose parsing #\
+(
+previous_brackets:
+sn}                      \# request input #\
+    pushnum 0            \# [0] push 0 onto the stack #\
+    store 2              \# [1] store the top value of the stack into var2 #\
+    load 0               \# [2] push the value in var0 onto the stack #\
+    string2array         \# [3] take the top value of the stack and push it as a character array #\
+    store 0              \# [4] store the top value of the stack into var0 #\
+    load 1               \# [5] push the value in var1 onto the stack #\
+    for                  \# [6] start for loop #\
+        load 0           \# [7] push the value in var0 onto the stack #\
+        load 1           \# [8] push the value in var1 onto the stack #\
+        sarrayload       \# [9] load the value at index <top value of stack> from the array <second value of stack> #\
+        duplicate        \# [10] duplicate the top value of the stack #\
+        caset \[}        \# [11] if the top of the stack equals \[}, execute the case block #\
+            load 2       \# [12] push the value in var2 onto the stack #\
+            inc          \# [13] increment the top value of the stack #\
+            store 2      \# [14] store the top value of the stack into var2 #\
+        end              \# [15] end current language construct #\
+        caset \]}        \# [16] if the top of the stack equals \]}, execute the case block #\
+            load 2       \# [17] push the value in var2 onto the stack #\
+            dec          \# [18] decrement the top value of the stack #\
+            store 2      \# [19] store the top value of the stack into var2 #\
+        end              \# [20] end current language construct #\
+        load 2           \# [21] push the value in var2 onto the stack #\
+        case 0           \# [22] if the top of the stack equals 0, execute the case block #\
+            load 1       \# [23] push the value in var1 onto the stack #\
+            superpush    \# [24] pop the top value of the stack and push it to the parent stack #\
+            return       \# [25] break out of the current function frame #\
+        end              \# [26] end current language construct #\
+        load 1           \# [27] push the value in var1 onto the stack #\
+        dec              \# [28] decrement the top value of the stack #\
+        store 1          \# [29] store the top value of the stack into var1 #\
+    end                  \# [30] end current language construct #\
+    load 1               \# [31] push the value in var1 onto the stack #\
+    superpush            \# [32] pop the top value of the stack and push it to the parent stack #\
+,
+next_brackets:
+sn}                       \# request input #\
+    pushnum 0             \# [0] push 0 onto the stack #\
+    store 4               \# [1] store the top value of the stack into var4 #\
+    load 0                \# [2] push the value in var0 onto the stack #\
+    string2array          \# [3] take the top value of the stack and push it as a character array #\
+    duplicate             \# [4] duplicate the top value of the stack #\
+    store 0               \# [5] store the top value of the stack into var0 #\
+    arraylength           \# [6] push the length of the array onto the stack #\
+    load 1                \# [7] push the value in var1 onto the stack #\
+    duplicate             \# [8] duplicate the top value of the stack #\
+    store 3               \# [9] store the top value of the stack into var3 #\
+    swap                  \# [10] swap the top two values of the stack #\
+    sub                   \# [11] subtract the second value on the stack from the top value on the stack #\
+    duplicate             \# [12] duplicate the top value of the stack #\
+    store 5               \# [13] store the top value of the stack into var5 #\
+    for                   \# [14] start for loop #\
+        popall            \# [15] clear the stack #\
+        false             \# [16] push a falsey value onto the stack #\
+        load 0            \# [17] push the value in var0 onto the stack #\
+        load 3            \# [18] push the value in var3 onto the stack #\
+        sarrayload        \# [19] load the value at index <top value of stack> from the array <second value of stack> #\
+        pushterm \[}      \# [20] push \[} onto the stack #\
+        notequal          \# [21] skip the next statement if the two top values on the stack are not equal #\
+        true              \# [22] push a truthy value onto the stack #\
+        ifblock           \# [23] if the top value of the stack is truthy, execute the next block #\
+            pop           \# [24] pop the top value off the stack #\
+            load 4        \# [25] push the value in var4 onto the stack #\
+            inc           \# [26] increment the top value of the stack #\
+            store 4       \# [27] store the top value of the stack into var4 #\
+        end               \# [28] end current language construct #\
+        popall            \# [29] clear the stack #\
+        load 0            \# [30] push the value in var0 onto the stack #\
+        load 3            \# [31] push the value in var3 onto the stack #\
+        sarrayload        \# [32] load the value at index <top value of stack> from the array <second value of stack> #\
+        false             \# [33] push a falsey value onto the stack #\
+        swap              \# [34] swap the top two values of the stack #\
+        pushterm \]}      \# [35] push \]} onto the stack #\
+        notequal          \# [36] skip the next statement if the two top values on the stack are not equal #\
+        true              \# [37] push a truthy value onto the stack #\
+        ifblock           \# [38] if the top value of the stack is truthy, execute the next block #\
+            pop           \# [39] pop the top value off the stack #\
+            load 4        \# [40] push the value in var4 onto the stack #\
+            dec           \# [41] decrement the top value of the stack #\
+            store 4       \# [42] store the top value of the stack into var4 #\
+        end               \# [43] end current language construct #\
+        popall            \# [44] clear the stack #\
+        load 4            \# [45] push the value in var4 onto the stack #\
+        inc               \# [46] increment the top value of the stack #\
+        negate            \# [47] negate the top value of the stack #\
+        ifblock           \# [48] if the top value of the stack is truthy, execute the next block #\
+            pushnum -1    \# [49] push -1 onto the stack #\
+            superpush     \# [50] pop the top value of the stack and push it to the parent stack #\
+            return        \# [51] break out of the current function frame #\
+        end               \# [52] end current language construct #\
+        false             \# [53] push a falsey value onto the stack #\
+        load 4            \# [54] push the value in var4 onto the stack #\
+        pushnum 0         \# [55] push 0 onto the stack #\
+        notequal          \# [56] skip the next statement if the two top values on the stack are not equal #\
+        true              \# [57] push a truthy value onto the stack #\
+        ifblock           \# [58] if the top value of the stack is truthy, execute the next block #\
+            pop           \# [59] pop the top value off the stack #\
+            load 3        \# [60] push the value in var3 onto the stack #\
+            superpush     \# [61] pop the top value of the stack and push it to the parent stack #\
+            return        \# [62] break out of the current function frame #\
+        end               \# [63] end current language construct #\
+        load 3            \# [64] push the value in var3 onto the stack #\
+        inc               \# [65] increment the top value of the stack #\
+        store 3           \# [66] store the top value of the stack into var3 #\
+        load 5            \# [67] push the value in var5 onto the stack #\
+        load 3            \# [68] push the value in var3 onto the stack #\
+        greater           \# [69] skip the next statement if the top value on the stack is greater than the next value on the stack #\
+        false             \# [70] push a falsey value onto the stack #\
+    end                   \# [71] end current language construct #\
+    pushnum -1            \# [72] push -1 onto the stack #\
+    superpush             \# [73] pop the top value of the stack and push it to the parent stack #\
+,
+are_balanced:
+s}                       \# request input #\
+    pushnum 0            \# [0] push 0 onto the stack #\
+    store 1              \# [1] store the top value of the stack into var1 #\
+    load 0               \# [2] push the value in var0 onto the stack #\
+    string2array         \# [3] take the top value of the stack and push it as a character array #\
+    for                  \# [4] start for loop #\
+        duplicate        \# [5] duplicate the top value of the stack #\
+        caset \[}        \# [6] if the top of the stack equals \[}, execute the case block #\
+            load 1       \# [7] push the value in var1 onto the stack #\
+            inc          \# [8] increment the top value of the stack #\
+            store 1      \# [9] store the top value of the stack into var1 #\
+        end              \# [10] end current language construct #\
+        caset \]}        \# [11] if the top of the stack equals \]}, execute the case block #\
+            load 1       \# [12] push the value in var1 onto the stack #\
+            dec          \# [13] decrement the top value of the stack #\
+            store 1      \# [14] store the top value of the stack into var1 #\
+        end              \# [15] end current language construct #\
+        load 1           \# [16] push the value in var1 onto the stack #\
+        inc              \# [17] increment the top value of the stack #\
+        negate           \# [18] negate the top value of the stack #\
+        ifblock          \# [19] if the top value of the stack is truthy, execute the next block #\
+            false        \# [20] push a falsey value onto the stack #\
+            superpush    \# [21] pop the top value of the stack and push it to the parent stack #\
+            return       \# [22] break out of the current function frame #\
+        end              \# [23] end current language construct #\
+    end                  \# [24] end current language construct #\
+    load 1               \# [25] push the value in var1 onto the stack #\
+    case 0               \# [26] if the top of the stack equals 0, execute the case block #\
+        true             \# [27] push a truthy value onto the stack #\
+        superpush        \# [28] pop the top value of the stack and push it to the parent stack #\
+        return           \# [29] break out of the current function frame #\
+    end                  \# [30] end current language construct #\
+    false                \# [31] push a falsey value onto the stack #\
+    superpush            \# [32] pop the top value of the stack and push it to the parent stack #\
+)
+sn}                        \# request input #\
+swap                       \# [0] swap the top two values of the stack #\
+call previous_brackets}    \# [1] call function previous_brackets} #\

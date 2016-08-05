@@ -1,0 +1,239 @@
+# \# enable verbose parsing #\
+(
+decrement_pointer:
+n}                   \# request input #\
+    load 0           \# [0] push the value in var0 onto the stack #\
+    dec              \# [1] decrement the top value of the stack #\
+    triplicate       \# [2] triplicate the top value of the stack #\
+    case 0           \# [3] if the top of the stack equals 0, execute the case block #\
+        dec          \# [4] decrement the top value of the stack #\
+        superpush    \# [5] pop the top value of the stack and push it to the parent stack #\
+        break        \# [6] break out of the current function frame or loop #\
+    end              \# [7] end current language construct #\
+    long_min         \# [8] push long_min onto the stack #\
+    dec              \# [9] decrement the top value of the stack #\
+    cases            \# [10] if the top two values of the stack are equal, execute the case block #\
+        long_max     \# [11] push long_max onto the stack #\
+        superpush    \# [12] pop the top value of the stack and push it to the parent stack #\
+        break        \# [13] break out of the current function frame or loop #\
+    end              \# [14] end current language construct #\
+    superpush        \# [15] pop the top value of the stack and push it to the parent stack #\
+,
+increment_pointer:
+n}                   \# request input #\
+    load 0           \# [0] push the value in var0 onto the stack #\
+    inc              \# [1] increment the top value of the stack #\
+    triplicate       \# [2] triplicate the top value of the stack #\
+    case 0           \# [3] if the top of the stack equals 0, execute the case block #\
+        inc          \# [4] increment the top value of the stack #\
+        superpush    \# [5] pop the top value of the stack and push it to the parent stack #\
+        break        \# [6] break out of the current function frame or loop #\
+    end              \# [7] end current language construct #\
+    long_max         \# [8] push long_max onto the stack #\
+    inc              \# [9] increment the top value of the stack #\
+    cases            \# [10] if the top two values of the stack are equal, execute the case block #\
+        long_min     \# [11] push long_min onto the stack #\
+        superpush    \# [12] pop the top value of the stack and push it to the parent stack #\
+        break        \# [13] break out of the current function frame or loop #\
+    end              \# [14] end current language construct #\
+    superpush        \# [15] pop the top value of the stack and push it to the parent stack #\
+,
+decrement_cell:
+a?n}                     \# request input #\
+    load 0               \# [0] push the value in var0 onto the stack #\
+    arrayload 6          \# [1] load a value from an array at index 6 #\
+    store 2              \# [2] store the top value of the stack into var2 #\
+    arrayload 7          \# [3] load a value from an array at index 7 #\
+    store 3              \# [4] store the top value of the stack into var3 #\
+    arrayload 5          \# [5] load a value from an array at index 5 #\
+    swap                 \# [6] swap the top two values of the stack #\
+    pop                  \# [7] pop the top value off the stack #\
+    ifelse               \# [8] if the top value of the stack is truthy, execute the next block, otherwise, execute the else block #\
+        false            \# [9] push a falsey value onto the stack #\
+        load 1           \# [10] push the value in var1 onto the stack #\
+        dec              \# [11] decrement the top value of the stack #\
+        load 2           \# [12] push the value in var2 onto the stack #\
+        dec              \# [13] decrement the top value of the stack #\
+        notequal         \# [14] skip the next statement if the two top values on the stack are not equal #\
+        true             \# [15] push a truthy value onto the stack #\
+        ifblock          \# [16] if the top value of the stack is truthy, execute the next block #\
+            pop          \# [17] pop the top value off the stack #\
+            load 3       \# [18] push the value in var3 onto the stack #\
+            superpush    \# [19] pop the top value of the stack and push it to the parent stack #\
+            return       \# [20] break out of the current function frame #\
+        end              \# [21] end current language construct #\
+        load 1           \# [22] push the value in var1 onto the stack #\
+        dec              \# [23] decrement the top value of the stack #\
+        superpush        \# [24] pop the top value of the stack and push it to the parent stack #\
+        return           \# [25] break out of the current function frame #\
+    else                 \# [26] end the truthy section of the ifelse block #\
+        load 1           \# [27] push the value in var1 onto the stack #\
+        dec              \# [28] decrement the top value of the stack #\
+        superpush        \# [29] pop the top value of the stack and push it to the parent stack #\
+    end                  \# [30] end current language construct #\
+,
+increment_cell:
+a?n}                     \# request input #\
+    load 0               \# [0] push the value in var0 onto the stack #\
+    arrayload 6          \# [1] load a value from an array at index 6 #\
+    store 2              \# [2] store the top value of the stack into var2 #\
+    arrayload 7          \# [3] load a value from an array at index 7 #\
+    store 3              \# [4] store the top value of the stack into var3 #\
+    arrayload 5          \# [5] load a value from an array at index 5 #\
+    swap                 \# [6] swap the top two values of the stack #\
+    pop                  \# [7] pop the top value off the stack #\
+    ifelse               \# [8] if the top value of the stack is truthy, execute the next block, otherwise, execute the else block #\
+        false            \# [9] push a falsey value onto the stack #\
+        load 1           \# [10] push the value in var1 onto the stack #\
+        inc              \# [11] increment the top value of the stack #\
+        load 3           \# [12] push the value in var3 onto the stack #\
+        inc              \# [13] increment the top value of the stack #\
+        notequal         \# [14] skip the next statement if the two top values on the stack are not equal #\
+        true             \# [15] push a truthy value onto the stack #\
+        ifblock          \# [16] if the top value of the stack is truthy, execute the next block #\
+            pop          \# [17] pop the top value off the stack #\
+            load 2       \# [18] push the value in var2 onto the stack #\
+            superpush    \# [19] pop the top value of the stack and push it to the parent stack #\
+            return       \# [20] break out of the current function frame #\
+        end              \# [21] end current language construct #\
+        load 1           \# [22] push the value in var1 onto the stack #\
+        inc              \# [23] increment the top value of the stack #\
+        superpush        \# [24] pop the top value of the stack and push it to the parent stack #\
+        return           \# [25] break out of the current function frame #\
+    else                 \# [26] end the truthy section of the ifelse block #\
+        load 1           \# [27] push the value in var1 onto the stack #\
+        inc              \# [28] increment the top value of the stack #\
+        superpush        \# [29] pop the top value of the stack and push it to the parent stack #\
+    end                  \# [30] end current language construct #\
+,
+output_char:
+n}                    \# request input #\
+    load 0            \# [0] push the value in var0 onto the stack #\
+    codepoint2char    \# [1] convert the top value of the stack from a codepoint to a character #\
+    popout            \# [2] pop the top value of a stack and print it #\
+,
+input_char:
+a?}                   \# request input #\
+    load 0            \# [0] push the value in var0 onto the stack #\
+    duplicate         \# [1] duplicate the top value of the stack #\
+    store 5           \# [2] store the top value of the stack into var5 #\
+    arrayload 3       \# [3] load a value from an array at index 3 #\
+    store 1           \# [4] store the top value of the stack into var1 #\
+    arrayload 4       \# [5] load a value from an array at index 4 #\
+    store 2           \# [6] store the top value of the stack into var2 #\
+    pop               \# [7] pop the top value off the stack #\
+    load 2            \# [8] push the value in var2 onto the stack #\
+    arraylength       \# [9] push the length of the array onto the stack #\
+    store 3           \# [10] store the top value of the stack into var3 #\
+    pop               \# [11] pop the top value off the stack #\
+    load 1            \# [12] push the value in var1 onto the stack #\
+    load 3            \# [13] push the value in var3 onto the stack #\
+    sub               \# [14] subtract the second value on the stack from the top value on the stack #\
+    case 0            \# [15] if the top of the stack equals 0, execute the case block #\
+        pushnum 0     \# [16] push 0 onto the stack #\
+        superpush     \# [17] pop the top value of the stack and push it to the parent stack #\
+        return        \# [18] break out of the current function frame #\
+    end               \# [19] end current language construct #\
+    load 2            \# [20] push the value in var2 onto the stack #\
+    load 1            \# [21] push the value in var1 onto the stack #\
+    sarrayload        \# [22] load the value at index <top value of stack> from the array <second value of stack> #\
+    char2codepoint    \# [23] convert the top value of the stack from a character to a code #\
+    superpush         \# [24] pop the top value of the stack and push it to the parent stack #\
+    load 5            \# [25] push the value in var5 onto the stack #\
+    load 1            \# [26] push the value in var1 onto the stack #\
+    inc               \# [27] increment the top value of the stack #\
+    arraystore 3      \# [28] store the top of the stack at index 3 in an array #\
+,
+execute_instruction:
+a?n}                               \# request input #\
+    load 0                         \# [0] push the value in var0 onto the stack #\
+    arrayload 2                    \# [1] load a value from an array at index 2 #\
+    swap                           \# [2] swap the top two values of the stack #\
+    arrayload 1                    \# [3] load a value from an array at index 1 #\
+    swap                           \# [4] swap the top two values of the stack #\
+    pop                            \# [5] pop the top value off the stack #\
+    sarrayload                     \# [6] load the value at index <top value of stack> from the array <second value of stack> #\
+    dupmany 6                      \# [7] duplicate the top value of the stack 6 times #\
+    caset >}                       \# [8] if the top of the stack equals >}, execute the case block #\
+        popall                     \# [9] clear the stack #\
+        load 0                     \# [10] push the value in var0 onto the stack #\
+        arrayload 0                \# [11] load a value from an array at index 0 #\
+        call increment_pointer}    \# [12] call function increment_pointer} #\
+        arraystore 0               \# [13] store the top of the stack at index 0 in an array #\
+        superpush                  \# [14] pop the top value of the stack and push it to the parent stack #\
+        load 1                     \# [15] push the value in var1 onto the stack #\
+        superpush                  \# [16] pop the top value of the stack and push it to the parent stack #\
+        false                      \# [17] push a falsey value onto the stack #\
+        superpush                  \# [18] pop the top value of the stack and push it to the parent stack #\
+        return                     \# [19] break out of the current function frame #\
+    end                            \# [20] end current language construct #\
+    caset <}                       \# [21] if the top of the stack equals <}, execute the case block #\
+        popall                     \# [22] clear the stack #\
+        load 0                     \# [23] push the value in var0 onto the stack #\
+        arrayload 0                \# [24] load a value from an array at index 0 #\
+        call decrement_pointer}    \# [25] call function decrement_pointer} #\
+        arraystore 0               \# [26] store the top of the stack at index 0 in an array #\
+        superpush                  \# [27] pop the top value of the stack and push it to the parent stack #\
+        load 1                     \# [28] push the value in var1 onto the stack #\
+        superpush                  \# [29] pop the top value of the stack and push it to the parent stack #\
+        false                      \# [30] push a falsey value onto the stack #\
+        superpush                  \# [31] pop the top value of the stack and push it to the parent stack #\
+        return                     \# [32] break out of the current function frame #\
+    end                            \# [33] end current language construct #\
+    caset +}                       \# [34] if the top of the stack equals +}, execute the case block #\
+        popall                     \# [35] clear the stack #\
+        load 0                     \# [36] push the value in var0 onto the stack #\
+        superpush                  \# [37] pop the top value of the stack and push it to the parent stack #\
+        load 0                     \# [38] push the value in var0 onto the stack #\
+        load 1                     \# [39] push the value in var1 onto the stack #\
+        call increment_cell}       \# [40] call function increment_cell} #\
+        superpush                  \# [41] pop the top value of the stack and push it to the parent stack #\
+        true                       \# [42] push a truthy value onto the stack #\
+        superpush                  \# [43] pop the top value of the stack and push it to the parent stack #\
+        return                     \# [44] break out of the current function frame #\
+    end                            \# [45] end current language construct #\
+    caset -}                       \# [46] if the top of the stack equals -}, execute the case block #\
+        popall                     \# [47] clear the stack #\
+        load 0                     \# [48] push the value in var0 onto the stack #\
+        superpush                  \# [49] pop the top value of the stack and push it to the parent stack #\
+        load 0                     \# [50] push the value in var0 onto the stack #\
+        load 1                     \# [51] push the value in var1 onto the stack #\
+        call decrement_cell}       \# [52] call function decrement_cell} #\
+        superpush                  \# [53] pop the top value of the stack and push it to the parent stack #\
+        true                       \# [54] push a truthy value onto the stack #\
+        superpush                  \# [55] pop the top value of the stack and push it to the parent stack #\
+        return                     \# [56] break out of the current function frame #\
+    end                            \# [57] end current language construct #\
+    caset .}                       \# [58] if the top of the stack equals .}, execute the case block #\
+        popall                     \# [59] clear the stack #\
+        load 1                     \# [60] push the value in var1 onto the stack #\
+        call output_char}          \# [61] call function output_char} #\
+        load 0                     \# [62] push the value in var0 onto the stack #\
+        superpush                  \# [63] pop the top value of the stack and push it to the parent stack #\
+        load 1                     \# [64] push the value in var1 onto the stack #\
+        superpush                  \# [65] pop the top value of the stack and push it to the parent stack #\
+        false                      \# [66] push a falsey value onto the stack #\
+        superpush                  \# [67] pop the top value of the stack and push it to the parent stack #\
+        return                     \# [68] break out of the current function frame #\
+    end                            \# [69] end current language construct #\
+    caset \,}                      \# [70] if the top of the stack equals \,}, execute the case block #\
+        load 0                     \# [71] push the value in var0 onto the stack #\
+        popall                     \# [72] clear the stack #\
+        call input_char}           \# [73] call function input_char} #\
+        load 0                     \# [74] push the value in var0 onto the stack #\
+        superpush                  \# [75] pop the top value of the stack and push it to the parent stack #\
+        superpush                  \# [76] pop the top value of the stack and push it to the parent stack #\
+        true                       \# [77] push a truthy value onto the stack #\
+        superpush                  \# [78] pop the top value of the stack and push it to the parent stack #\
+        return                     \# [79] break out of the current function frame #\
+    end                            \# [80] end current language construct #\
+    load 0                         \# [81] push the value in var0 onto the stack #\
+    superpush                      \# [82] pop the top value of the stack and push it to the parent stack #\
+    load 1                         \# [83] push the value in var1 onto the stack #\
+    superpush                      \# [84] pop the top value of the stack and push it to the parent stack #\
+    false                          \# [85] push a falsey value onto the stack #\
+    superpush                      \# [86] pop the top value of the stack and push it to the parent stack #\
+)
+a?n}                         \# request input #\
+swap                         \# [0] swap the top two values of the stack #\
+call execute_instruction}    \# [1] call function execute_instruction} #\

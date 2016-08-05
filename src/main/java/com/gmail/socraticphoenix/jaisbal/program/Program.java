@@ -55,6 +55,7 @@ public class Program extends PlasmaObject {
         put('(', '(');
         put(')', ')');
         put(',', ',');
+        put(':', ':');
     }});
 
     /*

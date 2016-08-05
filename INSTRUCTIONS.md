@@ -1,7 +1,7 @@
 #JAISBaL Instruction Reference
-	For the sake of convenience, a is used to refer to the top value of the stack, b is used to refer to the second value on the stack, c is used to refer to the third value on the stack, and so on.
+For the sake of convenience, a is used to refer to the top value of the stack, b is used to refer to the second value on the stack, c is used to refer to the third value on the stack, and so on.
 
-	Below are all defined instructions and constants. Although not stated in every specification, most instructions that accept an array can also accept a string, and many instructions are vectorized. A vectorized instruction operates normally so long as its arguments are passed normally, however if one of the arguments is an array, the instruction will be applied across the array, using its other arguments. As a rule of thumb, instructions that define behavior between operands which are not arrays will be vectorized (such as exponentiation, modulus, rounding operations, etc.).
+Below are all defined instructions and constants. Although not stated in every specification, most instructions that accept an array can also accept a string, and many instructions are vectorized. A vectorized instruction operates normally so long as its arguments are passed normally, however if one of the arguments is an array, the instruction will be applied across the array, using its other arguments. As a rule of thumb, instructions that define behavior between operands which are not arrays will be vectorized (such as exponentiation, modulus, rounding operations, etc.).
 
 Standard Instructions, 175 defined
 

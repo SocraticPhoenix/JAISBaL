@@ -1,5 +1,9 @@
 #
 (
+input:
+i}
+    superpush
+,
 hello_world:
     pushterm Hello\, World!}
     popoutln

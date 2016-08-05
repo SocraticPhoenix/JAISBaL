@@ -1,0 +1,172 @@
+# \# enable verbose parsing #\
+(
+prep:
+    importutf instructions}    \# [0] import instructions} #\
+    importutf parse}           \# [1] import parse} #\
+)
+ssnnn}                                        \# request input #\
+newarray 8                                    \# [0] create and push new array with length 8 #\
+pushnum 1                                     \# [1] push 1 onto the stack #\
+arraystore 0                                  \# [2] store the top of the stack at index 0 in an array #\
+pushnum 0                                     \# [3] push 0 onto the stack #\
+arraystore 1                                  \# [4] store the top of the stack at index 1 in an array #\
+swap                                          \# [5] swap the top two values of the stack #\
+string2array                                  \# [6] take the top value of the stack and push it as a character array #\
+arraystore 2                                  \# [7] store the top of the stack at index 2 in an array #\
+pushnum 0                                     \# [8] push 0 onto the stack #\
+arraystore 3                                  \# [9] store the top of the stack at index 3 in an array #\
+swap                                          \# [10] swap the top two values of the stack #\
+string2array                                  \# [11] take the top value of the stack and push it as a character array #\
+arraystore 4                                  \# [12] store the top of the stack at index 4 in an array #\
+swap                                          \# [13] swap the top two values of the stack #\
+arraystore 5                                  \# [14] store the top of the stack at index 5 in an array #\
+swap                                          \# [15] swap the top two values of the stack #\
+arraystore 6                                  \# [16] store the top of the stack at index 6 in an array #\
+swap                                          \# [17] swap the top two values of the stack #\
+arraystore 7                                  \# [18] store the top of the stack at index 7 in an array #\
+store 0                                       \# [19] store the top value of the stack into var0 #\
+load 0                                        \# [20] push the value in var0 onto the stack #\
+arrayload 4                                   \# [21] load a value from an array at index 4 #\
+arraylength                                   \# [22] push the length of the array onto the stack #\
+swap                                          \# [23] swap the top two values of the stack #\
+pop                                           \# [24] pop the top value off the stack #\
+case 0                                        \# [25] if the top of the stack equals 0, execute the case block #\
+    jumpindex 162                             \# [26] jump to instruction 162 #\
+end                                           \# [27] end current language construct #\
+arrayload 2                                   \# [28] load a value from an array at index 2 #\
+array2string                                  \# [29] join the elements of the top value of the stack into a string #\
+call parse.are_balanced}                      \# [30] call function parse.are_balanced} #\
+negate                                        \# [31] negate the top value of the stack #\
+ifblock                                       \# [32] if the top value of the stack is truthy, execute the next block #\
+    printterm Brackets are unbalanced!}       \# [33] print Brackets are unbalanced!} #\
+    jumpindex 162                             \# [34] jump to instruction 162 #\
+end                                           \# [35] end current language construct #\
+true                                          \# [36] push a truthy value onto the stack #\
+while                                         \# [37] start while loop #\
+    popall                                    \# [38] clear the stack #\
+    load 0                                    \# [39] push the value in var0 onto the stack #\
+    arrayload 2                               \# [40] load a value from an array at index 2 #\
+    swap                                      \# [41] swap the top two values of the stack #\
+    arrayload 1                               \# [42] load a value from an array at index 1 #\
+    swap                                      \# [43] swap the top two values of the stack #\
+    pop                                       \# [44] pop the top value off the stack #\
+    sarrayload                                \# [45] load the value at index <top value of stack> from the array <second value of stack> #\
+    duplicate                                 \# [46] duplicate the top value of the stack #\
+    caset \[}                                 \# [47] if the top of the stack equals \[}, execute the case block #\
+        load 0                                \# [48] push the value in var0 onto the stack #\
+        arrayload 0                           \# [49] load a value from an array at index 0 #\
+        swap                                  \# [50] swap the top two values of the stack #\
+        pop                                   \# [51] pop the top value off the stack #\
+        duplicate                             \# [52] duplicate the top value of the stack #\
+        isfulls                               \# [53] push truthy if var<top value of stack> is occupied, falsey otherwise #\
+        negate                                \# [54] negate the top value of the stack #\
+        ifblock                               \# [55] if the top value of the stack is truthy, execute the next block #\
+            duplicate                         \# [56] duplicate the top value of the stack #\
+            pushnum 0                         \# [57] push 0 onto the stack #\
+            swap                              \# [58] swap the top two values of the stack #\
+            sstore                            \# [59] store the second value in the stack at var<top value of stack> #\
+        end                                   \# [60] end current language construct #\
+        sload                                 \# [61] push the value in var<top value of stack> onto the stack #\
+        case 0                                \# [62] if the top of the stack equals 0, execute the case block #\
+            load 0                            \# [63] push the value in var0 onto the stack #\
+            arrayload 2                       \# [64] load a value from an array at index 2 #\
+            array2string                      \# [65] join the elements of the top value of the stack into a string #\
+            swap                              \# [66] swap the top two values of the stack #\
+            arrayload 1                       \# [67] load a value from an array at index 1 #\
+            swap                              \# [68] swap the top two values of the stack #\
+            pop                               \# [69] pop the top value off the stack #\
+            call parse.next_brackets}         \# [70] call function parse.next_brackets} #\
+            load 0                            \# [71] push the value in var0 onto the stack #\
+            swap                              \# [72] swap the top two values of the stack #\
+            arraystore 1                      \# [73] store the top of the stack at index 1 in an array #\
+            pop                               \# [74] pop the top value off the stack #\
+        end                                   \# [75] end current language construct #\
+        jumpindex 136                         \# [76] jump to instruction 136 #\
+    end                                       \# [77] end current language construct #\
+    caset \]}                                 \# [78] if the top of the stack equals \]}, execute the case block #\
+        load 0                                \# [79] push the value in var0 onto the stack #\
+        arrayload 0                           \# [80] load a value from an array at index 0 #\
+        swap                                  \# [81] swap the top two values of the stack #\
+        pop                                   \# [82] pop the top value off the stack #\
+        duplicate                             \# [83] duplicate the top value of the stack #\
+        isfulls                               \# [84] push truthy if var<top value of stack> is occupied, falsey otherwise #\
+        negate                                \# [85] negate the top value of the stack #\
+        ifblock                               \# [86] if the top value of the stack is truthy, execute the next block #\
+            duplicate                         \# [87] duplicate the top value of the stack #\
+            pushnum 0                         \# [88] push 0 onto the stack #\
+            swap                              \# [89] swap the top two values of the stack #\
+            sstore                            \# [90] store the second value in the stack at var<top value of stack> #\
+        end                                   \# [91] end current language construct #\
+        sload                                 \# [92] push the value in var<top value of stack> onto the stack #\
+        case 0                                \# [93] if the top of the stack equals 0, execute the case block #\
+            jumpindex 136                     \# [94] jump to instruction 136 #\
+        end                                   \# [95] end current language construct #\
+        load 0                                \# [96] push the value in var0 onto the stack #\
+        arrayload 2                           \# [97] load a value from an array at index 2 #\
+        array2string                          \# [98] join the elements of the top value of the stack into a string #\
+        swap                                  \# [99] swap the top two values of the stack #\
+        arrayload 1                           \# [100] load a value from an array at index 1 #\
+        swap                                  \# [101] swap the top two values of the stack #\
+        pop                                   \# [102] pop the top value off the stack #\
+        call parse.previous_brackets}         \# [103] call function parse.previous_brackets} #\
+        load 0                                \# [104] push the value in var0 onto the stack #\
+        swap                                  \# [105] swap the top two values of the stack #\
+        arraystore 1                          \# [106] store the top of the stack at index 1 in an array #\
+        pop                                   \# [107] pop the top value off the stack #\
+    end                                       \# [108] end current language construct #\
+    popall                                    \# [109] clear the stack #\
+    load 0                                    \# [110] push the value in var0 onto the stack #\
+    arrayload 0                               \# [111] load a value from an array at index 0 #\
+    swap                                      \# [112] swap the top two values of the stack #\
+    pop                                       \# [113] pop the top value off the stack #\
+    duplicate                                 \# [114] duplicate the top value of the stack #\
+    isfulls                                   \# [115] push truthy if var<top value of stack> is occupied, falsey otherwise #\
+    negate                                    \# [116] negate the top value of the stack #\
+    ifblock                                   \# [117] if the top value of the stack is truthy, execute the next block #\
+        duplicate                             \# [118] duplicate the top value of the stack #\
+        pushnum 0                             \# [119] push 0 onto the stack #\
+        swap                                  \# [120] swap the top two values of the stack #\
+        sstore                                \# [121] store the second value in the stack at var<top value of stack> #\
+    end                                       \# [122] end current language construct #\
+    sload                                     \# [123] push the value in var<top value of stack> onto the stack #\
+    load 0                                    \# [124] push the value in var0 onto the stack #\
+    swap                                      \# [125] swap the top two values of the stack #\
+    call instructions.execute_instruction}    \# [126] call function instructions.execute_instruction} #\
+    ifblock                                   \# [127] if the top value of the stack is truthy, execute the next block #\
+        swap                                  \# [128] swap the top two values of the stack #\
+        store 0                               \# [129] store the top value of the stack into var0 #\
+        load 0                                \# [130] push the value in var0 onto the stack #\
+        arrayload 0                           \# [131] load a value from an array at index 0 #\
+        swap                                  \# [132] swap the top two values of the stack #\
+        pop                                   \# [133] pop the top value off the stack #\
+        sstore                                \# [134] store the second value in the stack at var<top value of stack> #\
+    end                                       \# [135] end current language construct #\
+    popall                                    \# [136] clear the stack #\
+    load 0                                    \# [137] push the value in var0 onto the stack #\
+    arrayload 1                               \# [138] load a value from an array at index 1 #\
+    inc                                       \# [139] increment the top value of the stack #\
+    arraystore 1                              \# [140] store the top of the stack at index 1 in an array #\
+    load 0                                    \# [141] push the value in var0 onto the stack #\
+    arrayload 1                               \# [142] load a value from an array at index 1 #\
+    swap                                      \# [143] swap the top two values of the stack #\
+    arrayload 2                               \# [144] load a value from an array at index 2 #\
+    swap                                      \# [145] swap the top two values of the stack #\
+    pop                                       \# [146] pop the top value off the stack #\
+    arraylength                               \# [147] push the length of the array onto the stack #\
+    swap                                      \# [148] swap the top two values of the stack #\
+    pop                                       \# [149] pop the top value off the stack #\
+    sub                                       \# [150] subtract the second value on the stack from the top value on the stack #\
+    false                                     \# [151] push a falsey value onto the stack #\
+    swap                                      \# [152] swap the top two values of the stack #\
+    case 0                                    \# [153] if the top of the stack equals 0, execute the case block #\
+        true                                  \# [154] push a truthy value onto the stack #\
+    end                                       \# [155] end current language construct #\
+    ifblock                                   \# [156] if the top value of the stack is truthy, execute the next block #\
+        pop                                   \# [157] pop the top value off the stack #\
+        break                                 \# [158] break out of the current function frame or loop #\
+    end                                       \# [159] end current language construct #\
+    true                                      \# [160] push a truthy value onto the stack #\
+end                                           \# [161] end current language construct #\
+popall                                        \# [162] clear the stack #\
+pushterm <data>}                              \# [163] push <data>} onto the stack #\
+store 0                                       \# [164] store the top value of the stack into var0 #\
