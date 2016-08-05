@@ -347,13 +347,13 @@ public class InstructionRegistry {
         rc(CastableValue.of(StandardConstants.PHI), "phi");
         rc(CastableValue.of("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), "upper_alphabet");
         rc(CastableValue.of("abcdefghijklmnopqrstuvwxyz"), "lower_alphabet");
-        rc(CastableValue.of("0123456789"), "digits");
+        rc(CastableValue.of("1234567890"), "digits");
         rc(CastableValue.of(new BigDecimal(Byte.MIN_VALUE)), "byte_min");
         rc(CastableValue.of(new BigDecimal(Short.MIN_VALUE)), "short_min");
         rc(CastableValue.of(new BigDecimal(Integer.MIN_VALUE)), "int_min");
         rc(CastableValue.of(new BigDecimal(Long.MIN_VALUE)), "long_min");
-        rc(CastableValue.of(new BigDecimal(Double.MIN_VALUE)), "double_min");
-        rc(CastableValue.of(new BigDecimal(Float.MIN_VALUE)), "float_min");
+        rc(CastableValue.of(new BigDecimal(-Double.MAX_VALUE)), "double_min");
+        rc(CastableValue.of(new BigDecimal(-Float.MAX_VALUE)), "float_min");
 
         rc(CastableValue.of(new BigDecimal(Byte.MAX_VALUE)), "byte_max");
         rc(CastableValue.of(new BigDecimal(Short.MAX_VALUE)), "short_max");
