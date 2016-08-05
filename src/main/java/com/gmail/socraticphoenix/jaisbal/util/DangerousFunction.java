@@ -20,28 +20,10 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.app.util;
+package com.gmail.socraticphoenix.jaisbal.util;
 
-public class JAISBaLExecutionException extends Exception {
+public interface DangerousFunction<T, R> {
 
-    public JAISBaLExecutionException() {
-        super();
-    }
-
-    public JAISBaLExecutionException(String message) {
-        super(message);
-    }
-
-    public JAISBaLExecutionException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public JAISBaLExecutionException(Throwable cause) {
-        super(cause);
-    }
-
-    protected JAISBaLExecutionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
+    R apply(T t) throws Throwable;
 
 }

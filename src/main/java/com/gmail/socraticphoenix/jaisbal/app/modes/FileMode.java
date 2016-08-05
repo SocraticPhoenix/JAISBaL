@@ -23,9 +23,9 @@
 package com.gmail.socraticphoenix.jaisbal.app.modes;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
-import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
-import com.gmail.socraticphoenix.jaisbal.app.util.InSupplier;
-import com.gmail.socraticphoenix.jaisbal.app.util.Terminable;
+import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
+import com.gmail.socraticphoenix.jaisbal.util.InSupplier;
+import com.gmail.socraticphoenix.jaisbal.util.Terminable;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.plasma.file.PlasmaFileUtil;
 

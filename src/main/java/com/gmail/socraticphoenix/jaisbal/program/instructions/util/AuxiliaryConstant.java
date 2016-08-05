@@ -25,7 +25,7 @@ package com.gmail.socraticphoenix.jaisbal.program.instructions.util;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;
@@ -42,10 +42,8 @@ public class AuxiliaryConstant extends Instruction {
                 int i = value.getValueAs(BigDecimal.class).get().intValue();
                 f.getStack().push(InstructionRegistry.getAuxiliaryConstants().get(i));
                 return State.NORMAL;
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException(Program.valueToString(value) + " is not an integer index");
             } catch (IndexOutOfBoundsException e) {
-                throw new JAISBaLExecutionException("No aux_constant registered for " + Program.valueToString(value));
+                throw new JAISBaLExecutionException("Invalid value: no aux_constant registered for: " + Program.valueToString(value));
             }
         }, InstructionUtility.number(), -1, "load auxiliary constant #${arg}", "Pushes the auxiliary constant registered at the specified index onto the stack, This instruction takes on argument, a number (see pushnum)", "C", "const");
     }

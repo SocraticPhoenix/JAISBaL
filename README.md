@@ -51,6 +51,9 @@ Every JAISBaL file must define its parsing type. If the first character of a fil
 JAISBaL files have the general format
 ```
 # \# Optional verbose specifier #\
+⦅
+  \# Snippet block #\
+⦆
 (
   \# Function block #\
 )

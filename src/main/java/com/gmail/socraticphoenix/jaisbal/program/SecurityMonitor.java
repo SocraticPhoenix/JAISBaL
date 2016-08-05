@@ -22,7 +22,6 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
 
 public class SecurityMonitor {

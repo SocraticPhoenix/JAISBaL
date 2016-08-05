@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.DangerousFunction;
+import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 import com.gmail.socraticphoenix.plasma.string.CharacterStream;

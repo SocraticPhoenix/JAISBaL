@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.function;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
@@ -34,7 +34,6 @@ import com.gmail.socraticphoenix.plasma.string.BracketCounter;
 import com.gmail.socraticphoenix.plasma.string.CharacterStream;
 import com.gmail.socraticphoenix.plasma.string.StringParseException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +57,7 @@ public class Function extends PlasmaObject {
         this.implicitInput = implicitInput;
         this.verbose = verbose;
         if(this.name.contains(".")) {
-            throw new JAISBaLExecutionException("Function names cannot contain periods");
+            throw new JAISBaLExecutionException("Invalid name: function names cannot contain periods (" + name + ")");
         }
     }
 
@@ -84,14 +83,14 @@ public class Function extends PlasmaObject {
                 } catch (JAISBaLExecutionException e) {
                     throw e;
                 } catch (Throwable throwable) {
-                    throw new JAISBaLExecutionException("Error while reading value ", throwable);
+                    throw new JAISBaLExecutionException("Invalid value: error while reading value \"" + val + "\"", throwable);
                 }
                 if (val != null && !val.equals("")) {
                     builder.append(" ").append(val);
                 }
                 instructions.add(builder.toString());
             } else {
-                throw new JAISBaLExecutionException("No instructions called " + c);
+                throw new JAISBaLExecutionException("Invalid name: no instructions called " + c);
             }
         }
         return instructions.stream().filter(i -> !i.replaceAll(" ", "").equals("")).collect(Collectors.toList());
@@ -188,8 +187,12 @@ public class Function extends PlasmaObject {
         this.program = program;
     }
 
-    public void runAsMain() throws JAISBaLExecutionException, IOException {
+    public void runAsMain() throws JAISBaLExecutionException {
         this.createContext().runAsMain();
+    }
+
+    public State runAsSurrogate(FunctionContext parent) throws JAISBaLExecutionException {
+        return this.createSurrogateContext(parent).run();
     }
 
     public State run(Stack<CastableValue> parent) throws JAISBaLExecutionException {
@@ -210,6 +213,10 @@ public class Function extends PlasmaObject {
 
     public FunctionContext createContext() throws JAISBaLExecutionException {
         return new FunctionContext(this, this.program);
+    }
+
+    public FunctionContext createSurrogateContext(FunctionContext parent) throws JAISBaLExecutionException {
+        return FunctionContext.surrogate(this, parent);
     }
 
     public List<String> getInstructions() {

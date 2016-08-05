@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
@@ -116,7 +116,7 @@ public interface MathematicalInstructions {
             BigDecimal a = f.getStack().pop().getValueAs(BigDecimal.class).get();
             BigDecimal b = f.getStack().pop().getValueAs(BigDecimal.class).get();
             if (a.compareTo(BigDecimal.ZERO) < 0) {
-                throw new JAISBaLExecutionException("Cannot raise negative " + a + " to a power");
+                throw new JAISBaLExecutionException("Invalid value: cannot raise negative " + a + " to a power");
             } else {
                 f.getStack().push(CastableValue.of(new BigDecimal(Math.pow(a.doubleValue(), b.doubleValue()))));
             }
@@ -169,21 +169,13 @@ public interface MathematicalInstructions {
         Instruction RAND_INTEGER_BOUNDED = new Instruction(new VectorizedMonad(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
             CastableValue value = f.getStack().pop();
             BigDecimal decimal = value.getValueAs(BigDecimal.class).get();
-            try {
-                f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(0, decimal.intValue(), new Random()))));
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException(Program.valueToString(value) + " is not a 32-bit integer bound");
-            }
+            f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(0, decimal.intValue(), new Random()))));
             return State.NORMAL;
         })), 5.01, "push a random integer in the range [0, <top value of stack>)", "Pseudorandomly generates an integer in the range [0, a) and pushes it", "randib");
         Instruction RAND_INTEGER_BOUNDED_1 = new Instruction(new VectorizedMonad(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
             CastableValue value = f.getStack().pop();
             BigDecimal decimal = value.getValueAs(BigDecimal.class).get();
-            try {
-                f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(1, decimal.intValue(), new Random()))));
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException(Program.valueToString(value) + " is not a 32-bit integer bound");
-            }
+            f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(1, decimal.intValue(), new Random()))));
             return State.NORMAL;
         })), 5.01, "push a random integer in the range [1, <top value of stack>)", "Pseudorandomly generates an integer in the range [1, a) and pushes it", "randi1");
         Instruction RAND_INTEGER_DOUBLE_BOUNDED = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.NUMBER), f -> {
@@ -192,14 +184,10 @@ public interface MathematicalInstructions {
 
             BigDecimal decimal = value.getValueAs(BigDecimal.class).get();
             BigDecimal decimal2 = value2.getValueAs(BigDecimal.class).get();
-            try {
-                f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(Math.min(decimal.intValue(), decimal2.intValue()), Math.max(decimal.intValue(), decimal2.intValue()), new Random()))));
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException(Program.valueToString(value) + " is not a 32-bit integer bound");
-            }
+            f.getStack().push(CastableValue.of(new BigDecimal(IntRange.cleanRandomElement(Math.min(decimal.intValue(), decimal2.intValue()), Math.max(decimal.intValue(), decimal2.intValue()), new Random()))));
             return State.NORMAL;
         }), 5.01, "push a random integer in the range specified by the top two values of the stack", "Pseudorandomly generates an integer in the range [min(a, b), max(a, b)) and pushes it", "randidb");
-            //Mathematical functions
+        //Mathematical functions
         Instruction FACTORIAL = new Instruction(new VectorizedMonad(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER), f -> {
             BigInteger integer = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigInteger();
             BigInteger val = integer;

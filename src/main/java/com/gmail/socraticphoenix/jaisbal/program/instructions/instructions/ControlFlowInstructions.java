@@ -22,7 +22,6 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
@@ -51,35 +50,28 @@ public interface ControlFlowInstructions { //Group 3
         CastableValue indexV = f.getCurrentArgEasy();
         Type.NUMBER.checkMatches(indexV);
         BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
-        try {
-            int i = f.getCurrent();
-            int g = f.getCurrent() + index.intValue() - 1;
-            if (i != g) {
-                f.setCurrent(g);
-                return State.JUMPED;
-            } else {
-                return State.NORMAL;
-            }
-        } catch (ArithmeticException e) {
-            throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index", e);
+        int i = f.getCurrent();
+        int g = f.getCurrent() + index.intValue() - 1;
+        if (i != g) {
+            f.setCurrent(g);
+            return State.JUMPED;
+        } else {
+            return State.NORMAL;
         }
     }, InstructionUtility.number(), 3.02, "jump ${arg} instructions", "Jumps the given amount of instructions forward. The argument may be positive or negative, and the jump will likewise be forwards or backwards. This instruction takes one argument, a number (see pushnum). This instruction fails of the argument is not a 32-bit integer", "jump");
     Instruction INDEX_JUMP = new Instruction(f -> {
         CastableValue indexV = f.getCurrentArgEasy();
         Type.NUMBER.checkMatches(indexV);
         BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
-        try {
-            int i = f.getCurrent();
-            int g = index.intValue();
-            if (i != g) {
-                f.setCurrent(g);
-                return State.JUMPED;
-            } else {
-                return State.NORMAL;
-            }
-        } catch (ArithmeticException e) {
-            throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index", e);
+        int i = f.getCurrent();
+        int g = index.intValue();
+        if (i != g) {
+            f.setCurrent(g);
+            return State.JUMPED;
+        } else {
+            return State.NORMAL;
         }
+
     }, InstructionUtility.number(), 3.02, "jump to instruction ${arg}", "Jumps to the instruction at the given index. This instruction takes one argument, a number (see pushnum). This instruction fails if the argument is not a 32-bit integer", "jumpindex");
 
     //Loops, sub group .03
@@ -141,7 +133,7 @@ public interface ControlFlowInstructions { //Group 3
             State state = f.runSubset(end, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), end - 1));
             f.setCurrent(start);
             if (state.isTransmit() || state == State.JUMPED) {
-                if(state != State.JUMPED) {
+                if (state != State.JUMPED) {
                     f.setCurrent(end);
                 }
                 return state.deTransmitBreak();
@@ -161,7 +153,7 @@ public interface ControlFlowInstructions { //Group 3
             State state = f.runSubset(end, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), end - 1));
             f.setCurrent(start);
             if (state.isTransmit() || state == State.JUMPED) {
-                if(state != State.JUMPED) {
+                if (state != State.JUMPED) {
                     f.setCurrent(end);
                 }
                 return state.deTransmitBreak();
@@ -191,15 +183,14 @@ public interface ControlFlowInstructions { //Group 3
     Instruction IF_ELSE_BLOCK = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         int start = f.getCurrent();
-        int truthyEnd = f.subsetIndexDubloid("ifelse", "else");
-        f.setCurrent(truthyEnd + 1);
-        int falsyEnd = f.subsetIndexDubloid("else", "end");
+        int truthyEnd = f.subsetIndexDuplexMiddle("ifelse", "else", "end");
+        int falsyEnd = f.subsetIndexDuplexEnd("ifelse", "else", "end");
         f.setCurrent(start);
         CastableValue value = f.getStack().pop();
         if (InstructionUtility.truthy(value)) {
             State state = f.runSubset(truthyEnd - 1, c -> !PlasmaMathUtil.fitsBounds(start, c.getCurrent(), truthyEnd - 1));
             if (state.isTransmit() || state == State.JUMPED) {
-                if(state != State.JUMPED) {
+                if (state != State.JUMPED) {
                     f.setCurrent(falsyEnd);
                 }
                 return state;
@@ -208,7 +199,7 @@ public interface ControlFlowInstructions { //Group 3
             f.setCurrent(truthyEnd + 1);
             State state = f.runSubset(falsyEnd, c -> !PlasmaMathUtil.fitsBounds(truthyEnd + 1, c.getCurrent(), falsyEnd));
             if (state.isTransmit() || state == State.JUMPED) {
-                if(state != State.JUMPED) {
+                if (state != State.JUMPED) {
                     f.setCurrent(falsyEnd);
                 }
                 return state;
@@ -218,7 +209,7 @@ public interface ControlFlowInstructions { //Group 3
         return State.NORMAL;
     }, 3.04, "if the top value of the stack is truthy, execute the next block, otherwise, execute the else block", "Pops the top value of the stack. If a is truthy, run the  if block, otherwise run the else block (see if).", "ifelse");
     Instruction ELSE = new Instruction(f -> {
-        int falsyEnd = f.subsetIndex("else", "end");
+        int falsyEnd = f.subsetIndexDuplexMiddle("ifelse", "else", "end", 1, 0);
         f.setCurrent(falsyEnd);
         return State.JUMPED;
     }, 3.04, "end the truthy section of the ifelse block", "The end of an ifelse's if block, and the beginning of it's else block", "else");

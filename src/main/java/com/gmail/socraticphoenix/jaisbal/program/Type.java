@@ -22,7 +22,6 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.PlasmaObject;
 import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.reflection.CastableValue;

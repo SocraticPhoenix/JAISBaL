@@ -20,32 +20,48 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.app.util;
+package com.gmail.socraticphoenix.jaisbal.util;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.function.Supplier;
 
-public class LoopedSupplier implements Supplier<String>, Terminable {
-    private List<String> supply = new CopyOnWriteArrayList<>();
+public class InSupplier implements Supplier<String>, Terminable {
+    private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     private boolean running = true;
+    private boolean wasJustEnd = false;
 
     @Override
     public String get() {
-        while (this.supply.size() <= 0 && this.running);
+        StringBuilder b = new StringBuilder();
+        while (this.running) {
+            try {
+                if(this.reader.ready()) {
+                    char c = (char) this.reader.read();
+                    if(this.wasJustEnd && this.isEnd(c)) {
+                        continue;
+                    } else if (this.isEnd(c)) {
+                        this.wasJustEnd = true;
+                        break;
+                    } else {
+                        this.wasJustEnd = false;
+                        b.append(c);
+                    }
+                }
+            } catch (IOException ignore) {
+
+            }
+        }
         if(this.running) {
-            return this.supply.remove(0);
+            return b.toString();
         } else {
             return null;
         }
     }
 
-    public void clear() {
-        this.supply.clear();
-    }
-
-    public void add(String s) {
-        supply.add(s);
+    private boolean isEnd(char c) {
+        return c == '\n' || c == '\r' || System.lineSeparator().indexOf(c) != -1;
     }
 
     @Override

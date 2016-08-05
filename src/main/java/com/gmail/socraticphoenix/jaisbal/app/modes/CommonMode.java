@@ -23,11 +23,11 @@
 package com.gmail.socraticphoenix.jaisbal.app.modes;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
-import com.gmail.socraticphoenix.jaisbal.app.util.LoopedSupplier;
+import com.gmail.socraticphoenix.jaisbal.util.LoopedSupplier;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.plasma.base.Stopwatch;
 import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;

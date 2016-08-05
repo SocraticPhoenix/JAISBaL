@@ -20,29 +20,26 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.app.util;
+package com.gmail.socraticphoenix.jaisbal.util;
 
-import com.gmail.socraticphoenix.jaisbal.program.function.Function;
-import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
+import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
+import com.gmail.socraticphoenix.plasma.reflection.util.Caster;
 
-public interface DangerousConsumer<T> {
+import java.math.BigDecimal;
 
-    void accept(T t) throws Throwable;
-
-    default DangerousConsumer<T> andThen(DangerousConsumer<? super T> after) {
-        return (T t) -> { accept(t); after.accept(t); };
+public class StringNumberCaster implements Caster {
+    @Override
+    public Object cast(Object o, Class aClass) {
+        if(o instanceof String) {
+            return new BigDecimal((String) o);
+        } else {
+            return String.valueOf(o);
+        }
     }
 
-    static DangerousConsumer<FunctionContext> of(Function f) {
-        return context -> {
-            f.createContext().run(context.getStack());
-        };
+    @Override
+    public boolean canCast(Object o, Class aClass) {
+        return (o instanceof String && Number.class.isAssignableFrom(aClass) && PlasmaMathUtil.isBigDecimal((String) o)) ||
+                (o instanceof Number && String.class.isAssignableFrom(aClass));
     }
-
-    static DangerousConsumer<FunctionContext> of(FunctionContext f) {
-        return context -> {
-            f.run(context.getStack());
-        };
-    }
-
 }

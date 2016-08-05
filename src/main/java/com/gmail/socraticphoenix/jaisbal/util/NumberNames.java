@@ -20,7 +20,7 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.app.util;
+package com.gmail.socraticphoenix.jaisbal.util;
 
 public class NumberNames {
     private static final String[] specialNames = {

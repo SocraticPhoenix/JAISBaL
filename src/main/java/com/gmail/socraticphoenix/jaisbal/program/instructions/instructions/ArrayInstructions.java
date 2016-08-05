@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
@@ -46,24 +46,17 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
     Instruction ARRAY_CREATE = new Instruction(f -> {
         CastableValue index = f.getCurrentArgEasy();
         Type.NUMBER.checkMatches(index);
-        try {
             CastableValue[] array = new CastableValue[index.getValueAs(BigDecimal.class).get().intValue()];
             f.getStack().push(CastableValue.of(array));
-        } catch (ArithmeticException e) {
-            throw new JAISBaLExecutionException(Program.valueToString(index) + " is not a 32-bit integer index");
-        }
         return State.NORMAL;
     }, InstructionUtility.number(), 6.01, "create and push new array with length ${arg}", "Creates a new array with the given length. This instruction takes one argument, a number (see pushnum)", "newarray");
     Instruction ARRAY_CREATE_STACK = new Instruction(new VectorizedMonad(f -> {
         Program.checkUnderflow(1, f);
         CastableValue index = f.getStack().pop();
         Type.NUMBER.checkMatches(index);
-        try {
             CastableValue[] array = new CastableValue[index.getValueAs(BigDecimal.class).get().intValue()];
             f.getStack().push(CastableValue.of(array));
-        } catch (ArithmeticException e) {
-            throw new JAISBaLExecutionException(Program.valueToString(index) + " is not a 32-bit integer index");
-        }
+
         return State.NORMAL;
     }), InstructionUtility.number(), 6.01, "create and push new array with length <top value of stack>", "Creates a new array with the length a. This instruction fails if a is not a 32-bit integer index", "snewarray");
     Instruction ARRAY_LENGTH = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
@@ -84,7 +77,7 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             f.getStack().push(array);
             f.getStack().push(array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValue()]);
         } catch (ArithmeticException | IndexOutOfBoundsException e) {
-            throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
+            throw new JAISBaLExecutionException("Invalid value: " + Program.valueToString(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
     }), InstructionUtility.number(), 6.02, "load a value from an array at index ${arg}", "Loads a value from array a, from the specified index. This instruction does not pop off the array. This instruction takes one argument, a number (see pushnum). This instruction is only succesful if a is an array, and the argument given is a 32-bit integer that is an index of a", "arrayload", "aload");
@@ -99,7 +92,7 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValue()] = value;
             f.getStack().push(array);
         } catch (ArithmeticException | IndexOutOfBoundsException e) {
-            throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
+            throw new JAISBaLExecutionException("Invalid value: " + Program.valueToString(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
     }), InstructionUtility.number(), 6.02, "store the top of the stack at index ${arg} in an array", "Stores value a in array b, at the specified index. This instruction does not pop off the array. This instruction takes on argument, a number (see pushnum). This instruction is only succesful if b is an array, and the argument given is a 32-bit integer that is an index of b", "arraystore", "astore");
@@ -114,10 +107,10 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             f.getStack().push(array);
             f.getStack().push(array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValue()]);
         } catch (ArithmeticException | IndexOutOfBoundsException e) {
-            throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
+            throw new JAISBaLExecutionException("Invalid value: " + Program.valueToString(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }), InstructionUtility.number(), 6.02, "load the value at index <top value of stack> from the array <second value of stack>", "Loads a value from array b, at index a. This instruction does not pop off the array. This instruction is only succesful if b is an array and a is a 32-bit integer that is an index in b", "sarrayload", "saload");
+    }), 6.02, "load the value at index <top value of stack> from the array <second value of stack>", "Loads a value from array b, at index a. This instruction does not pop off the array. This instruction is only succesful if b is an array and a is a 32-bit integer that is an index in b", "sarrayload", "saload");
     Instruction ARRAY_STORE_STACK = new Instruction(new VectorizedDyadString(f -> {
         Program.checkUnderflow(3, f);
         CastableValue index = f.getStack().pop();
@@ -129,10 +122,10 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             array.getValueAs(CastableValue[].class).get()[index.getValueAs(BigDecimal.class).get().intValue()] = value;
             f.getStack().push(array);
         } catch (ArithmeticException | IndexOutOfBoundsException e) {
-            throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large or small", e);
+            throw new JAISBaLExecutionException("Invalid value: " + Program.valueToString(index) + " is not an integer index, or is too large or small", e);
         }
         return State.NORMAL;
-    }), InstructionUtility.number(), 6.02, "store the third value of the stack in an array, using the top value of the stack as an index", "Stores value c in array b at index a. This instruction does not pop off the array. This instruction is only succesful if b is an array and a is 32-bit integer that is an index in b", "sarraystore", "sastore");
+    }), 6.02, "store the third value of the stack in an array, using the top value of the stack as an index", "Stores value c in array b at index a. This instruction does not pop off the array. This instruction is only succesful if b is an array and a is 32-bit integer that is an index in b", "sarraystore", "sastore");
 
     //List operations, sub group .03
     Instruction ARRAY_SORT = new Instruction(new VectorizedMonadString(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
@@ -196,13 +189,12 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
             }
             f.getStack().push(CastableValue.of(array));
 
-        } catch (ArithmeticException | NegativeArraySizeException e) {
-            throw new JAISBaLExecutionException("Either the range is too large/small", e);
+        } catch (NegativeArraySizeException e) {
+            throw new JAISBaLExecutionException("Invalid value: " + "min cannot equal max when creating an exclusive range" , e);
         }
         return State.NORMAL;
     }), 6.03, "push an array containing all numbers in the range of the two numbers on the top of the stack", "Pops a and b off the stack and pushes an array containing the range between them. The range will be 1-incremented from min(a, b) to max(a, b) - 1. ", "range");
     Instruction ARRAY_RANGED_INCLUSIVE = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.NUMBER, Type.NUMBER), f -> {
-        try {
             BigInteger a = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigInteger();
             BigInteger b = f.getStack().pop().getValueAs(BigDecimal.class).get().toBigInteger();
             BigInteger min = PlasmaListUtil.getMinimum(new BigInteger[]{a, b});
@@ -214,10 +206,6 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
                 min = min.add(BigInteger.ONE);
             }
             f.getStack().push(CastableValue.of(array));
-
-        } catch (ArithmeticException e) {
-            throw new JAISBaLExecutionException("Either the range is too large");
-        }
         return State.NORMAL;
     }), 6.03, "push an array containing all numbers in the range of the two numbers on the top of the stack, inclusively", "Pops a and b off the stack and pushes an array containing the range between them. The range will be 1-incremented from min(a, b) to max(a, b). ", "rangein");
     Instruction SHUFFLE = new Instruction(new SyntheticFunction(PlasmaListUtil.buildList(Type.GENERAL_ARRAY), f -> {
@@ -289,7 +277,7 @@ public interface ArrayInstructions { //Group 6, for convenience, strings are con
         }
         f.getStack().push(CastableValue.of(builder.toString()));
         return State.NORMAL;
-    })), InstructionUtility.terminated(), 6.05, "join the elements of second value of the stack with <top value of stack>", "Pops the top two value of the stack, and joins every element of array b with the a as glue", "joins");
+    })), 6.05, "join the elements of second value of the stack with <top value of stack>", "Pops the top two value of the stack, and joins every element of array b with the a as glue", "joins");
 
     Instruction CONCAT = new Instruction(f -> {
         Program.checkUnderflow(2, f);

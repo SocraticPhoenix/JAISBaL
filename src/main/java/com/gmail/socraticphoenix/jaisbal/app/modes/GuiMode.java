@@ -24,7 +24,7 @@ package com.gmail.socraticphoenix.jaisbal.app.modes;
 
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.app.gui.JAISBaLInterface;
-import com.gmail.socraticphoenix.jaisbal.app.util.DangerousConsumer;
+import com.gmail.socraticphoenix.jaisbal.util.DangerousConsumer;
 
 import java.io.File;
 import java.io.FileInputStream;

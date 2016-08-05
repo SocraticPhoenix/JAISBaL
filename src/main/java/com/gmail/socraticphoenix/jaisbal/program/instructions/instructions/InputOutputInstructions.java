@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
@@ -111,7 +111,7 @@ public interface InputOutputInstructions { //group 0, non-standard
             stream.writeBytes(content);
             stream.close();
         } else {
-            throw new JAISBaLExecutionException("Unknown url protocol: " + url.getProtocol());
+            throw new JAISBaLExecutionException("Invalid value: unknown url protocol: " + url.getProtocol());
         }
         return State.NORMAL;
     }), 0.01, 30, "posts the second value of the stack to the url on the top of the stack", "Pops a string off the stack and posts b to it", "upost");

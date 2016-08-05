@@ -140,7 +140,7 @@ public interface ConditionalInstructions { //Group 2
             return State.JUMPED;
         }
         return State.NORMAL;
-    }, 2.01, "skip the next statement if the values on the stack are in smalles to greatest order, with no duplicates", "Consecutively pops every value of the stack, checks if it is > the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, the next instruction is skipped (see compare)", "&>", "greaterall");
+    }, 2.01, "skip the next statement if the values on the stack are in smallest to greatest order, with no duplicates", "Consecutively pops every value of the stack, checks if it is > the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, the next instruction is skipped (see compare)", "&>", "greaterall");
     Instruction LESS_ALL = new Instruction(f -> {
         Program.checkUnderflow(2, f);
         boolean check = true;
@@ -219,8 +219,6 @@ public interface ConditionalInstructions { //Group 2
         }
         return State.NORMAL;
     }, 2.01, "if the top value on the stack is falsy, skip the next statement", "Pops the top value of the stack. If a is not truthy, skip the next statement (see if)", "!if");
-
-    //Pushes, sub group .02
     Instruction PUSH_TRUTHY = new Instruction(f -> {
         f.getStack().push(new CastableValue(new BigDecimal(1)));
         return State.NORMAL;
@@ -229,6 +227,176 @@ public interface ConditionalInstructions { //Group 2
         f.getStack().push(new CastableValue(new BigDecimal(0)));
         return State.NORMAL;
     }, 2.02, "push a falsey value onto the stack", "Pushes 0, a falsy value, onto the stack", "false");
+    
+    //Pushes, sub group .02
+    Instruction PUSH_EQUAL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        if ((InstructionUtility.compare(f.getStack().pop(), f.getStack().pop()) == 0)) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the top two values on the stack are equal, falsey otherwise", "Pushes a truthy value if a and b are equal (see compare), falsey otherwise", "?=", "ifequal");
+    Instruction PUSH_NOT_EQUAL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        if (InstructionUtility.compare(f.getStack().pop(), f.getStack().pop()) != 0) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the two top values on the stack are not equal, falsey otherwise", "Pushes a truthy value if a and b are not equal (see compare), falsey otherwise", "?!=", "ifnotequal");
+    Instruction PUSH_GREATER = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        if (!(InstructionUtility.compare(f.getStack().pop(), f.getStack().pop()) > 0)) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the top value on the stack is greater than the next value on the stack, falsey otherwise", "Pushes a truthy value if a > b (see compare), falsey otherwise", "?>", "ifgreater");
+    Instruction PUSH_LESS = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        if (!(InstructionUtility.compare(f.getStack().pop(), f.getStack().pop()) < 0)) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the top value on the stack is less than the next value on the stack, falsey otherwise", "Pushes a truthy value if a < b (see compare), falsey otherwise", "?<", "ifless");
+    Instruction PUSH_GREATER_EQUAL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        if (!(InstructionUtility.compare(f.getStack().pop(), f.getStack().pop()) >= 0)) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the top value on the stack is greater than or equal to the next value on the stack, falsey otherwise", "Pushes a truthy value if a >= b (see compare), falsey otherwise", "?>=", "ifgreaterequal");
+    Instruction PUSH_LESS_EQUAL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        if (!(InstructionUtility.compare(f.getStack().pop(), f.getStack().pop()) <= 0)) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the top value on the stack is less than the next value on the stack, falsey otherwise", "Pushes a truthy value if a <= b (see compare), falsey otherwise", "?<=", "iflessequal");
+    Instruction PUSH_EQUAL_ALL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        boolean check = true;
+        CastableValue prev = null;
+        while (!f.getStack().isEmpty()) {
+            if (prev == null) {
+                prev = f.getStack().pop();
+            } else {
+                CastableValue v = f.getStack().pop();
+                check = check && InstructionUtility.compare(v, prev) == 0;
+                prev = v;
+            }
+        }
+
+        if (check) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if all values on the stack are equal, falsey otherwise", "Consecutively pops every value of the stack, checks if it is equal (see compare) to the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, a truthy value is pushed, falsey otherwise", "?&=", "ifequalall");
+    Instruction PUSH_NOT_EQUAL_ALL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        boolean check = true;
+        CastableValue prev = null;
+        while (!f.getStack().isEmpty()) {
+            CastableValue v = f.getStack().pop();
+            if (prev == null) {
+                prev = v;
+            } else {
+                check = check && InstructionUtility.compare(v, prev) != 0;
+                prev = v;
+            }
+        }
+
+        if (check) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if any values on the stack are not equal, falsey otherwise", "Consecutively pops every value of the stack, checks if it is not equal (see compare) to the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, a truthy value is pushed, falsey otherwise", "?&!=", "ifnotequalall");
+    Instruction PUSH_GREATER_ALL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        boolean check = true;
+        CastableValue prev = null;
+        while (!f.getStack().isEmpty()) {
+            if (prev == null) {
+                prev = f.getStack().pop();
+            } else {
+                CastableValue v = f.getStack().pop();
+                check = check && InstructionUtility.compare(v, prev) > 0;
+                prev = v;
+            }
+        }
+
+        if (check) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the values on the stack are in smallest to greatest order, with no duplicates, falsey otherwise", "Consecutively pops every value of the stack, checks if it is > (see compare) the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, a truthy value is pushed, falsey otherwise", "?&>", "ifgreaterall");
+    Instruction PUSH_LESS_ALL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        boolean check = true;
+        CastableValue prev = null;
+        while (!f.getStack().isEmpty()) {
+            if (prev == null) {
+                prev = f.getStack().pop();
+            } else {
+                CastableValue v = f.getStack().pop();
+                check = check && InstructionUtility.compare(v, prev) < 0;
+                prev = v;
+            }
+        }
+
+        if (check) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the values on the stack are in greatest to smallest order, with no duplicates, falsey otherwise", "Consecutively pops every value of the stack, checks if it is < (see compare) the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, a truthy value is pushed, falsey otherwise", "?&<", "iflessall");
+    Instruction PUSH_GREATER_EQUAL_ALL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        boolean check = true;
+        CastableValue prev = null;
+        while (!f.getStack().isEmpty()) {
+            if (prev == null) {
+                prev = f.getStack().pop();
+            } else {
+                CastableValue v = f.getStack().pop();
+                check = check && InstructionUtility.compare(v, prev) >= 0;
+                prev = v;
+            }
+        }
+
+        if (check) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the values on the stack are in smallest to greatest order, falsey otherwise", "Consecutively pops every value of the stack, checks if it is >= (see compare) the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, a truthy value is pushed, falsey otherwise", "?&>=", "ifgreaterequalall");
+    Instruction PUSH_LESS_EQUAL_ALL = new Instruction(f -> {
+        Program.checkUnderflow(2, f);
+        boolean check = true;
+        CastableValue prev = null;
+        while (!f.getStack().isEmpty()) {
+            if (prev == null) {
+                prev = f.getStack().pop();
+            } else {
+                CastableValue v = f.getStack().pop();
+                check = check && InstructionUtility.compare(v, prev) < 0;
+                prev = v;
+            }
+        }
+
+        if (check) {
+            return ConditionalInstructions.PUSH_TRUTHY.getAction().apply(f);
+        } else {
+            return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
+        }
+    }, 2.01, "push a truthy value if the values on the stack are in greatest to smallest order, falsey otherwise", "Consecutively pops every value of the stack, checks if it is <= (see compare) the previously popped value, and ANDs the boolean result to a single boolean. If the final boolean is true, a truthy value is pushed, falsey otherwise", "?&<=", "iflessequalall");
     Instruction NEGATE = new Instruction(f -> {
         Program.checkUnderflow(1, f);
         CastableValue value = f.getStack().pop();

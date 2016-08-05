@@ -93,6 +93,8 @@ public class InstructionRegistry {
         //Fundamental instructions
         r(FundamentalInstructions.FUNCTION);
         r(FundamentalInstructions.CHAR_FUNCTION);
+        r(FundamentalInstructions.SNIPPET);
+        r(FundamentalInstructions.CHAR_SNIPPET);
         r(FundamentalInstructions.IMPORT);
         r(FundamentalInstructions.IMPORT_UTF8);
         r(FundamentalInstructions.AUX_FUNCTION);
@@ -190,6 +192,18 @@ public class InstructionRegistry {
         r(ConditionalInstructions.PUSH_FALSEY);
         r(ConditionalInstructions.NEGATE);
         r(ConditionalInstructions.COMPARE);
+        r(ConditionalInstructions.PUSH_EQUAL);
+        r(ConditionalInstructions.PUSH_NOT_EQUAL);
+        r(ConditionalInstructions.PUSH_GREATER);
+        r(ConditionalInstructions.PUSH_LESS);
+        r(ConditionalInstructions.PUSH_GREATER_EQUAL);
+        r(ConditionalInstructions.PUSH_LESS_EQUAL);
+        r(ConditionalInstructions.PUSH_EQUAL_ALL);
+        r(ConditionalInstructions.PUSH_NOT_EQUAL_ALL);
+        r(ConditionalInstructions.PUSH_GREATER_ALL);
+        r(ConditionalInstructions.PUSH_LESS_ALL);
+        r(ConditionalInstructions.PUSH_GREATER_EQUAL_ALL);
+        r(ConditionalInstructions.PUSH_LESS_EQUAL_ALL);
 
 
         //Control flow

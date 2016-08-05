@@ -20,14 +20,28 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.app.modes;
+package com.gmail.socraticphoenix.jaisbal.program;
 
-import com.gmail.socraticphoenix.jaisbal.program.Program;
-import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
+public class JAISBaLExecutionException extends Exception {
 
-public interface Actions {
+    public JAISBaLExecutionException() {
+        super();
+    }
 
-    DangerousFunction<String, String> MINIFY = s -> Program.parse(s).minify();
-    DangerousFunction<String, String> EXPLAIN = s -> Program.parse(s).explain();
+    public JAISBaLExecutionException(String message) {
+        super(message);
+    }
+
+    public JAISBaLExecutionException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public JAISBaLExecutionException(Throwable cause) {
+        super(cause);
+    }
+
+    protected JAISBaLExecutionException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 
 }

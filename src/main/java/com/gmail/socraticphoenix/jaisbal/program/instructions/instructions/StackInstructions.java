@@ -23,7 +23,7 @@
 package com.gmail.socraticphoenix.jaisbal.program.instructions.instructions;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
@@ -197,7 +197,7 @@ public interface StackInstructions {
                 f.getStack().push(toDup);
             }
             return State.NORMAL;
-        }, InstructionUtility.number(), 0.04, "duplicate the second value of the stack <top value of stack> times", "Duplicates b, a times. Fails if b is not a number.", "dupmanys");
+        }, 0.04, "duplicate the second value of the stack <top value of stack> times", "Duplicates b, a times. Fails if b is not a number.", "dupmanys");
 
 
         //Register manipulators, sub group .05
@@ -207,25 +207,17 @@ public interface StackInstructions {
             Type.NUMBER.checkMatches(indexV);
             CastableValue value = f.getStack().pop();
             BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
-            try {
-                f.getLocals().put(index.longValue(), value);
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large", e);
-            }
+            f.getLocals().put(index.longValue(), value);
             return State.NORMAL;
         }, InstructionUtility.number(), 0.05, "store the top value of the stack into var${arg}", "Pops the top value off the stack and stores it in the given var. This instruction takes one argument, a number (see pushnum)", "store");
         Instruction LOAD = new Instruction(f -> {
             CastableValue indexV = f.getCurrentArgEasy();
             Type.NUMBER.checkMatches(indexV);
             BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
-            try {
-                if (f.getLocals().get(index.longValue()) != null) {
-                    f.getStack().push(f.getLocals().get(index.longValue()));
-                } else {
-                    throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " does not lead to a registered local variable");
-                }
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large", e);
+            if (f.getLocals().get(index.longValue()) != null) {
+                f.getStack().push(f.getLocals().get(index.longValue()));
+            } else {
+                throw new JAISBaLExecutionException("Invalid value: " + Program.valueToString(indexV) + " does not lead to a registered local variable");
             }
             return State.NORMAL;
         }, InstructionUtility.number(), 0.05, "push the value in var${arg} onto the stack", "Pushes the value in the given var onto the stack. This instruction takes on argument, a number (see pushnum)", "load");
@@ -236,29 +228,22 @@ public interface StackInstructions {
             Type.NUMBER.checkMatches(indexV);
             CastableValue value = f.getStack().pop();
             BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
-            try {
-                f.getLocals().put(index.longValue(), value);
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large", e);
-            }
+            f.getLocals().put(index.longValue(), value);
             return State.NORMAL;
-        }, InstructionUtility.number(), 0.05, "store the second value in the stack at var<top value of stack>", "Pops the top two values off the stack, and stores b in var a", "sstore");
+        }, 0.05, "store the second value in the stack at var<top value of stack>", "Pops the top two values off the stack, and stores b in var a", "sstore");
         Instruction LOAD_STACK = new Instruction(f -> {
             Program.checkUnderflow(1, f);
             CastableValue indexV = f.getStack().pop();
             Type.NUMBER.checkMatches(indexV);
             BigDecimal index = indexV.getValueAs(BigDecimal.class).get();
-            try {
-                if (f.getLocals().get(index.longValue()) != null) {
-                    f.getStack().push(f.getLocals().get(index.longValue()));
-                } else {
-                    throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " does not lead to a registered local variable");
-                }
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException("Invalid value: " + String.valueOf(index) + " is not an integer index, or is too large", e);
+            if (f.getLocals().get(index.longValue()) != null) {
+                f.getStack().push(f.getLocals().get(index.longValue()));
+            } else {
+                throw new JAISBaLExecutionException("Invalid value: " + Program.valueToString(indexV) + " does not lead to a registered local variable");
             }
+
             return State.NORMAL;
-        }, InstructionUtility.number(), 0.05, "push the value in var<top value of stack> onto the stack", "Pops the top value off the stack and loads the value in var a onto the stack", "sload");
+        }, 0.05, "push the value in var<top value of stack> onto the stack", "Pops the top value off the stack and loads the value in var a onto the stack", "sload");
         Instruction STORE_ALL = new Instruction(f -> {
             for (long i = f.getStack().size() - 1; !f.getStack().isEmpty(); i--) {
                 f.getLocals().put(i, f.getStack().pop());
@@ -292,7 +277,7 @@ public interface StackInstructions {
             } else {
                 return ConditionalInstructions.PUSH_FALSEY.getAction().apply(f);
             }
-        }), InstructionUtility.number(), 0.05, "push truthy if var<top value of stack> is occupied, falsey otherwise", "Pushes a truthy value if the local variable at index a is occupied, falsey otherwise", "isfulls");
+        }), 0.05, "push truthy if var<top value of stack> is occupied, falsey otherwise", "Pushes a truthy value if the local variable at index a is occupied, falsey otherwise", "isfulls");
     }
 
     interface Outputters { //Group 1

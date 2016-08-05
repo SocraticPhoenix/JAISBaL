@@ -23,7 +23,7 @@ apply plugin : 'net.sf.gapt'
 //End Plugins
 
 //Program Specific Variables (Fill these in)
-def programVersion = "2.0.0"
+def programVersion = "3.0.0"
 def programGroup = "com.gmail.socraticphoenix"
 def programName = "JAISBaL"
 def repoName = "Main"

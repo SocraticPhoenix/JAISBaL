@@ -20,26 +20,12 @@
  *
  * @author Socratic_Phoenix (socraticphoenix@gmail.com)
  */
-package com.gmail.socraticphoenix.jaisbal.app.util;
+package com.gmail.socraticphoenix.jaisbal.util;
 
-import com.gmail.socraticphoenix.plasma.math.PlasmaMathUtil;
-import com.gmail.socraticphoenix.plasma.reflection.util.Caster;
+public interface Terminable {
 
-import java.math.BigDecimal;
+    void terminate();
 
-public class StringNumberCaster implements Caster {
-    @Override
-    public Object cast(Object o, Class aClass) {
-        if(o instanceof String) {
-            return new BigDecimal((String) o);
-        } else {
-            return String.valueOf(o);
-        }
-    }
+    void restart();
 
-    @Override
-    public boolean canCast(Object o, Class aClass) {
-        return (o instanceof String && Number.class.isAssignableFrom(aClass) && PlasmaMathUtil.isBigDecimal((String) o)) ||
-                (o instanceof Number && String.class.isAssignableFrom(aClass));
-    }
 }

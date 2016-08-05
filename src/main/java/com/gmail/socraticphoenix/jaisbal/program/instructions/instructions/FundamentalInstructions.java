@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions.instructions;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
@@ -43,19 +43,47 @@ public interface FundamentalInstructions { //group -1
         if (f.getProgram().getFunction(s).isPresent()) {
             return f.getProgram().getFunction(s).get().run(f.getStack()).deTransmitBreak();
         } else {
-            throw new JAISBaLExecutionException("Could not find function " + s);
+            throw new JAISBaLExecutionException("Invalid value: no function called " + s);
         }
     }, InstructionUtility.terminated(), -1, "call function ${arg}", "Calls the given function. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no function exists for the given name", "f", "call");
+    Instruction CHAR_FUNCTION = new Instruction(f -> {
+        Type.STRING.checkMatches(f.getCurrentArgEasy());
+        String s = f.getCurrentArgEasy().getAsString().get();
+        if (f.getProgram().getFunction(s).isPresent()) {
+            return f.getProgram().getFunction(s).get().run(f.getStack()).deTransmitBreak();
+        } else {
+            throw new JAISBaLExecutionException("Invalid value: no function called " + s);
+        }
+    }, InstructionUtility.fixed(1), -1, "call function ${arg}", "Calls the given function. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no function exists for the given name", "l", "call1");
+    Instruction SNIPPET = new Instruction(f -> {
+        Type.STRING.checkMatches(f.getCurrentArgEasy());
+        String s = f.getCurrentArgEasy().getAsString().get();
+        if (f.getProgram().getSnippet(s).isPresent()) {
+            return f.getProgram().getSnippet(s).get().runAsSurrogate(f).deTransmitBreak();
+        } else {
+            throw new JAISBaLExecutionException("Invalid value: no function called " + s);
+        }
+    }, InstructionUtility.terminated(), -1, "call snippet ${arg}", "Calls the given snippet. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no snippet exists for the given name", "p", "snippet");
+    Instruction CHAR_SNIPPET = new Instruction(f -> {
+        Type.STRING.checkMatches(f.getCurrentArgEasy());
+        String s = f.getCurrentArgEasy().getAsString().get();
+        if (f.getProgram().getSnippet(s).isPresent()) {
+            return f.getProgram().getSnippet(s).get().runAsSurrogate(f).deTransmitBreak();
+        } else {
+            throw new JAISBaLExecutionException("Invalid value: no function called " + s);
+        }
+    }, InstructionUtility.fixed(1), -1, "call snippet ${arg}", "Calls the given snippet. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no snippet exists for the given name", "t", "snippet1");
+
     Instruction IMPORT = new Instruction(f -> {
         Type.STRING.checkMatches(f.getCurrentArgEasy());
         String s = f.getCurrentArgEasy().getAsString().get().replaceAll(Pattern.quote("."), "/");
-        if(!f.getProgram().getImported().contains(s)) {
+        if (!f.getProgram().getImported().contains(s)) {
             File lib = new File(s + ".isbl");
             if (lib.exists()) {
                 byte[] bytes = Files.readAllBytes(lib.toPath());
                 f.getProgram().$import(s.replaceAll("/", "."), new String(bytes, JAISBaLCharset.getCharset()));
             } else {
-                throw new JAISBaLExecutionException("No library found called \"" + s + "\"");
+                throw new JAISBaLExecutionException("Invalid value: no library called " + s);
             }
         }
         return State.NORMAL;
@@ -63,26 +91,17 @@ public interface FundamentalInstructions { //group -1
     Instruction IMPORT_UTF8 = new Instruction(f -> {
         Type.STRING.checkMatches(f.getCurrentArgEasy());
         String s = f.getCurrentArgEasy().getAsString().get().replaceAll(Pattern.quote("."), "/");
-        if(!f.getProgram().getImported().contains(s)) {
+        if (!f.getProgram().getImported().contains(s)) {
             File lib = new File(s + ".isbl");
             if (lib.exists()) {
                 byte[] bytes = Files.readAllBytes(lib.toPath());
                 f.getProgram().$import(s.replaceAll("/", "."), new String(bytes, StandardCharsets.UTF_8));
             } else {
-                throw new JAISBaLExecutionException("No library found called \"" + s + "\"");
+                throw new JAISBaLExecutionException("Invalid value: no library called " + s);
             }
         }
         return State.NORMAL;
     }, InstructionUtility.terminated(), -1, "import ${arg}", "Imports a library encoded in utf8. The argument is converted to a file with the extension .isbl, and every function in the given library is added to the running program, prefixed with <libraryname>.", "importutf");
-    Instruction CHAR_FUNCTION = new Instruction(f -> {
-        Type.STRING.checkMatches(f.getCurrentArgEasy());
-        String s = f.getCurrentArgEasy().getAsString().get();
-        if (f.getProgram().getFunction(s).isPresent()) {
-            return f.getProgram().getFunction(s).get().run(f.getStack()).deTransmitBreak();
-        } else {
-            throw new JAISBaLExecutionException("Could not find function " + s);
-        }
-    }, InstructionUtility.fixed(1), -1, "call function ${arg}", "Calls the given function. This instruction takes one argument, terminated by '}' (see pushterm). This instruction fails if the given argument is not a string, or if no function exists for the given name", "l", "call1");
     Instruction AUX_FUNCTION = new AuxiliaryInstruction();
     Instruction AUX_CONSTANT = new AuxiliaryConstant();
 }

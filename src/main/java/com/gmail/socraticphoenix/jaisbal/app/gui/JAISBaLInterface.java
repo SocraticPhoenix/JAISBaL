@@ -23,18 +23,16 @@
 package com.gmail.socraticphoenix.jaisbal.app.gui;
 
 import com.gmail.socraticphoenix.jaisbal.JAISBaL;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
-import com.gmail.socraticphoenix.jaisbal.app.util.LoopedSupplier;
-import com.gmail.socraticphoenix.jaisbal.app.util.Terminable;
 import com.gmail.socraticphoenix.jaisbal.encode.JAISBaLCharset;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.SecurityMonitor;
 import com.gmail.socraticphoenix.jaisbal.program.function.FunctionContext;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.InstructionRegistry;
+import com.gmail.socraticphoenix.jaisbal.util.LoopedSupplier;
+import com.gmail.socraticphoenix.jaisbal.util.Terminable;
 import com.gmail.socraticphoenix.plasma.file.ByteBuilder;
 import com.gmail.socraticphoenix.plasma.file.stream.TextScreenOutputStream;
 import com.gmail.socraticphoenix.plasma.string.PlasmaStringUtil;
-import com.gmail.socraticphoenix.plasma.string.StringParseException;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 
@@ -65,7 +63,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
@@ -98,6 +95,7 @@ public class JAISBaLInterface {
     private JButton parseButton;
     private JSlider levelSlider;
     private JLabel level;
+    private JButton loadTemplateButton;
     private Font font;
 
     private JFrame frame;
@@ -157,6 +155,16 @@ public class JAISBaLInterface {
                 this.levelSlider.setMaximum(Math.max(100, InstructionRegistry.getMonitor().getLevel()));
                 this.level.setText(String.valueOf(InstructionRegistry.getMonitor().getLevel()));
             });
+            this.loadTemplateButton.addActionListener(e -> {
+                this.program.setText("#\n" +
+                        "\u2985\n" +
+                        "  \\# Snippet block #\\\n" +
+                        "\u2986\n" +
+                        "(\n" +
+                        "  \\# Function block #\\\n" +
+                        ")\n" +
+                        "\\# Main function #\\");
+            });
             this.input.addKeyListener((KeyReleasedListener) e -> {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     this.input();
@@ -204,7 +212,7 @@ public class JAISBaLInterface {
                             builder.append((byte) i);
                         }
                         this.program.setText(new String(builder.toBytes(), encoding));
-                    } catch (IOException e1) {
+                    } catch (Throwable e1) {
                         JAISBaL.getOut().println("Loading failed");
                         JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                         Throwable cause = e1;
@@ -231,7 +239,7 @@ public class JAISBaLInterface {
                                 FunctionContext context = program.getMain().createContext();
                                 reference.set(context);
                                 context.runAsMain();
-                            } catch (JAISBaLExecutionException | IOException | StringParseException e1) {
+                            } catch (Throwable e1) {
                                 JAISBaL.getOut().println("Execution failed");
                                 JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                                 Throwable cause = e1;
@@ -268,7 +276,7 @@ public class JAISBaLInterface {
                     Program program = Program.parse(s);
                     String m = program.minify();
                     this.program.setText(m);
-                } catch (JAISBaLExecutionException | StringParseException e1) {
+                } catch (Throwable e1) {
                     JAISBaL.getOut().println("Parsing failed");
                     JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                     Throwable cause = e1;
@@ -283,7 +291,7 @@ public class JAISBaLInterface {
                     Program program = Program.parse(s);
                     String m = program.explain();
                     this.program.setText(m);
-                } catch (JAISBaLExecutionException | StringParseException e1) {
+                } catch (Throwable e1) {
                     JAISBaL.getOut().println("Parsing failed");
                     JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                     Throwable cause = e1;
@@ -308,7 +316,7 @@ public class JAISBaLInterface {
                             stream.write(pieces);
                             stream.close();
                             JAISBaL.getOut().println("Successfully saved file");
-                        } catch (IOException e1) {
+                        } catch (Throwable e1) {
                             JAISBaL.getOut().println("Saving failed");
                             JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                             Throwable cause = e1;
@@ -333,7 +341,7 @@ public class JAISBaLInterface {
                 try {
                     Program.parse(this.program.getText());
                     JAISBaL.getOut().println("Successfully parsed program");
-                } catch (JAISBaLExecutionException | StringParseException e1) {
+                } catch (Throwable e1) {
                     JAISBaL.getOut().println("Parsing failed");
                     JAISBaL.getOut().println(e1.getClass().getName() + ": " + e1.getMessage());
                     Throwable cause = e1;
@@ -439,7 +447,7 @@ public class JAISBaLInterface {
         panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel1.add(panel2, new GridConstraints(9, 1, 6, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JPanel panel3 = new JPanel();
-        panel3.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel3.setLayout(new GridLayoutManager(6, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel2.add(panel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         panel3.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(-16777216)), null));
         minifyButton = new JButton();
@@ -455,13 +463,16 @@ public class JAISBaLInterface {
         levelSlider.setPaintLabels(false);
         levelSlider.setPaintTicks(false);
         levelSlider.setSnapToTicks(true);
-        panel3.add(levelSlider, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel3.add(levelSlider, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         level = new JLabel();
         level.setText("100");
-        panel3.add(level, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel3.add(level, new GridConstraints(5, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label5 = new JLabel();
         label5.setText("Security Level:");
-        panel3.add(label5, new GridConstraints(3, 0, 2, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panel3.add(label5, new GridConstraints(4, 0, 2, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        loadTemplateButton = new JButton();
+        loadTemplateButton.setText("Load Template");
+        panel3.add(loadTemplateButton, new GridConstraints(3, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel4 = new JPanel();
         panel4.setLayout(new GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
         panel2.add(panel4, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));

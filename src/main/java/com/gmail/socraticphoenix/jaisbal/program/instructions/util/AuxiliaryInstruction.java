@@ -22,7 +22,7 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions.util;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
 import com.gmail.socraticphoenix.jaisbal.program.instructions.Instruction;
@@ -40,10 +40,8 @@ public class AuxiliaryInstruction extends Instruction {
             try {
                 int i = value.getValueAs(BigDecimal.class).get().intValue();
                 return InstructionRegistry.getAuxiliaryInstructions().get(i).getAction().apply(f).deTransmitBreak();
-            } catch (ArithmeticException e) {
-                throw new JAISBaLExecutionException(Program.valueToString(value) + " is not an integer index");
             } catch (IndexOutOfBoundsException e) {
-                throw new JAISBaLExecutionException("No aux_instruction registered for " + Program.valueToString(value));
+                throw new JAISBaLExecutionException("Invalid value: no aux_instruction registered for: " + Program.valueToString(value));
             }
         }, InstructionUtility.number(), -1, "call auxiliary instruction #${arg}", "Calls the auxiliary instruction registered at the specified index. This instruction takes one argument, a number (see pushnum)", "F", "aux");
     }

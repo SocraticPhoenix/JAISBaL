@@ -22,8 +22,8 @@
  */
 package com.gmail.socraticphoenix.jaisbal.program.instructions.util;
 
-import com.gmail.socraticphoenix.jaisbal.app.util.DangerousFunction;
-import com.gmail.socraticphoenix.jaisbal.app.util.JAISBaLExecutionException;
+import com.gmail.socraticphoenix.jaisbal.util.DangerousFunction;
+import com.gmail.socraticphoenix.jaisbal.program.JAISBaLExecutionException;
 import com.gmail.socraticphoenix.jaisbal.program.Program;
 import com.gmail.socraticphoenix.jaisbal.program.State;
 import com.gmail.socraticphoenix.jaisbal.program.Type;
